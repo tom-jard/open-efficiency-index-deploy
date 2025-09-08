@@ -472,7 +472,21 @@
                             <span id="selected-region-header">This Region</span>
                         </div>
                         <div class="header-column national-header">
-                            <span>US Average</span>
+                            <select id="comparison-dropdown" onchange="updateComparison()" style="background: transparent; border: none; color: white; font-weight: bold; font-size: 0.9rem; cursor: pointer;">
+                                <option value="US" style="background: #2563eb; color: white;">US Average</option>
+                                <option value="WA" style="background: #2563eb; color: white;">Washington (Cleanest)</option>
+                                <option value="OR" style="background: #2563eb; color: white;">Oregon</option>
+                                <option value="VT" style="background: #2563eb; color: white;">Vermont</option>
+                                <option value="ID" style="background: #2563eb; color: white;">Idaho</option>
+                                <option value="CA" style="background: #2563eb; color: white;">California</option>
+                                <option value="NY" style="background: #2563eb; color: white;">New York</option>
+                                <option value="TX" style="background: #2563eb; color: white;">Texas</option>
+                                <option value="FL" style="background: #2563eb; color: white;">Florida</option>
+                                <option value="PA" style="background: #2563eb; color: white;">Pennsylvania</option>
+                                <option value="OH" style="background: #2563eb; color: white;">Ohio</option>
+                                <option value="WV" style="background: #2563eb; color: white;">West Virginia</option>
+                                <option value="WY" style="background: #2563eb; color: white;">Wyoming (Dirtiest)</option>
+                            </select>
                         </div>
                         <div class="header-column diff-header">
                             <span>Difference</span>
@@ -514,14 +528,6 @@
                         <div class="metric-value-cell difference" id="efficiency-diff">—</div>
                     </div>
                 </div>
-
-                <!-- Comparison Panel -->
-                <div class="comparison-panel">
-                    <div class="comparison-header">Compare Regions</div>
-                    <button class="add-comparison" onclick="addRegionComparison()">
-                        Select another region to compare
-                    </button>
-                </div>
             </div>
         </div>
     </div>
@@ -534,6 +540,8 @@
         let currentGeography = 'state';
         let currentCategory = 'refrigerators';
         let selectedRegions = [];
+        let currentSelectedState = 'US';
+        let currentComparisonState = 'US';
         
         // Regional efficiency data (all 50 states with realistic grid and pricing data)
         const regionalData = {
@@ -831,47 +839,59 @@
             if (!regionData) return;
 
             // Update current region for comparison table
-            currentRegion = regionCode;
+            currentSelectedState = regionCode;
 
             // Update region info
             document.getElementById('region-name').textContent = regionData.name;
             document.getElementById('region-classification').textContent = regionData.classification;
             
             const categoryData = regionData[currentCategory];
-            const nationalData = regionalData.states['US'][currentCategory];
             
             // Update score and ranking
             document.getElementById('region-score').textContent = categoryData.co2;
             document.getElementById('region-ranking').textContent = 
                 regionData.ranking || `CO₂ lbs/year for ${currentCategory.replace('_', ' ')}`;
 
-            // Update breakdown data
-            updateBreakdownData(categoryData, nationalData);
+            // Update breakdown data with current comparison
+            updateBreakdownData();
         }
 
-        function updateBreakdownData(selected, national) {
+        function updateComparison() {
+            const dropdown = document.getElementById('comparison-dropdown');
+            currentComparisonState = dropdown.value;
+            updateBreakdownData();
+        }
+
+        function updateBreakdownData() {
+            const selectedData = regionalData.states[currentSelectedState];
+            const comparisonData = regionalData.states[currentComparisonState];
+            
+            if (!selectedData || !comparisonData) return;
+            
+            const selected = selectedData[currentCategory];
+            const comparison = comparisonData[currentCategory];
+            
             // Update the regional header
-            const regionName = regionalData.states[currentRegion]?.name || 'This Region';
-            document.getElementById('selected-region-header').textContent = regionName;
+            document.getElementById('selected-region-header').textContent = selectedData.name;
             
             // CO2 Emissions (lower is better)
             document.getElementById('co2-selected').textContent = `${selected.co2} lbs`;
-            document.getElementById('co2-national').textContent = `${national.co2} lbs`;
-            const co2Diff = selected.co2 - national.co2;
+            document.getElementById('co2-national').textContent = `${comparison.co2} lbs`;
+            const co2Diff = selected.co2 - comparison.co2;
             const co2DiffEl = document.getElementById('co2-diff');
             if (co2Diff === 0) {
                 co2DiffEl.textContent = '—';
                 co2DiffEl.className = 'metric-value-cell difference neutral';
             } else {
-                const co2DiffPct = Math.round((co2Diff / national.co2) * 100);
+                const co2DiffPct = Math.round((co2Diff / comparison.co2) * 100);
                 co2DiffEl.textContent = `${co2DiffPct > 0 ? '+' : ''}${co2DiffPct}%`;
                 co2DiffEl.className = `metric-value-cell difference ${co2Diff < 0 ? 'better' : 'worse'}`;
             }
             
             // Operating Cost (lower is better)
             document.getElementById('cost-selected').textContent = `$${selected.cost}`;
-            document.getElementById('cost-national').textContent = `$${national.cost}`;
-            const costDiff = selected.cost - national.cost;
+            document.getElementById('cost-national').textContent = `$${comparison.cost}`;
+            const costDiff = selected.cost - comparison.cost;
             const costDiffEl = document.getElementById('cost-diff');
             if (costDiff === 0) {
                 costDiffEl.textContent = '—';
