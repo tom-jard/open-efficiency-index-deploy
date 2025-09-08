@@ -908,42 +908,42 @@
                 costDiffEl.textContent = '—';
                 costDiffEl.className = 'metric-value-cell difference neutral';
             } else {
-                const costDiffPct = Math.round((costDiff / national.cost) * 100);
+                const costDiffPct = Math.round((costDiff / comparison.cost) * 100);
                 costDiffEl.textContent = `${costDiff > 0 ? '+' : ''}$${Math.abs(costDiff)}`;
                 costDiffEl.className = `metric-value-cell difference ${costDiff < 0 ? 'better' : 'worse'}`;
             }
             
             // Grid Carbon Intensity (lower is better)
             document.getElementById('grid-selected').textContent = `${selected.grid} lbs/kWh`;
-            document.getElementById('grid-national').textContent = `${national.grid} lbs/kWh`;
-            const gridDiff = selected.grid - national.grid;
+            document.getElementById('grid-national').textContent = `${comparison.grid} lbs/kWh`;
+            const gridDiff = selected.grid - comparison.grid;
             const gridDiffEl = document.getElementById('grid-diff');
             if (gridDiff === 0) {
                 gridDiffEl.textContent = '—';
                 gridDiffEl.className = 'metric-value-cell difference neutral';
             } else {
-                const gridDiffPct = Math.round((gridDiff / national.grid) * 100);
+                const gridDiffPct = Math.round((gridDiff / comparison.grid) * 100);
                 gridDiffEl.textContent = `${gridDiffPct > 0 ? '+' : ''}${gridDiffPct}%`;
                 gridDiffEl.className = `metric-value-cell difference ${gridDiff < 0 ? 'better' : 'worse'}`;
             }
             
             // Electricity Price (lower is better for consumers)
             document.getElementById('price-selected').textContent = `$${selected.price.toFixed(2)}/kWh`;
-            document.getElementById('price-national').textContent = `$${national.price.toFixed(2)}/kWh`;
-            const priceDiff = selected.price - national.price;
+            document.getElementById('price-national').textContent = `$${comparison.price.toFixed(2)}/kWh`;
+            const priceDiff = selected.price - comparison.price;
             const priceDiffEl = document.getElementById('price-diff');
             if (Math.abs(priceDiff) < 0.005) {
                 priceDiffEl.textContent = '—';
                 priceDiffEl.className = 'metric-value-cell difference neutral';
             } else {
-                const priceDiffPct = Math.round((priceDiff / national.price) * 100);
+                const priceDiffPct = Math.round((priceDiff / comparison.price) * 100);
                 priceDiffEl.textContent = `${priceDiff > 0 ? '+' : ''}${priceDiffPct}%`;
                 priceDiffEl.className = `metric-value-cell difference ${priceDiff < 0 ? 'better' : 'worse'}`;
             }
             
             // Efficiency Rating (same for all regions, so neutral)
             document.getElementById('efficiency-selected').textContent = `${selected.efficiency} ${getEfficiencyUnit()}`;
-            document.getElementById('efficiency-national').textContent = `${national.efficiency} ${getEfficiencyUnit()}`;
+            document.getElementById('efficiency-national').textContent = `${comparison.efficiency} ${getEfficiencyUnit()}`;
             const efficiencyDiffEl = document.getElementById('efficiency-diff');
             efficiencyDiffEl.textContent = '—';
             efficiencyDiffEl.className = 'metric-value-cell difference neutral';
