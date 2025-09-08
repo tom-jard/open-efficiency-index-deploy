@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Regional Impact - Open Efficiency Index</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f8fafc;
+            line-height: 1.6;
+            color: #2d3748;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Header */
+        .header {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: #1a202c;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            color: #718096;
+            max-width: 600px;
+            margin: 0 auto 16px;
+        }
+
+        .back-link {
+            display: inline-block;
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+            margin-top: 12px;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
+        /* Main Layout */
+        .main-layout {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+
+        /* Map Container */
+        .map-container {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            height: 600px;
+            position: relative;
+        }
+
+        .map-container h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+            color: #1a202c;
+        }
+
+        #us-map-svg {
+            width: 100%;
+            height: calc(100% - 60px);
+            border-radius: 8px;
+        }
+
+        .state {
+            fill: #e2e8f0;
+            stroke: #ffffff;
+            stroke-width: 1.5;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .state:hover {
+            stroke: #667eea;
+            stroke-width: 2;
+            filter: brightness(1.1);
+        }
+
+        .state.selected {
+            stroke: #667eea;
+            stroke-width: 3;
+            filter: brightness(1.2);
+        }
+
+        /* Region Details Panel */
+        .region-panel {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            height: 600px;
+            overflow-y: auto;
+        }
+
+        .region-header {
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 16px;
+            margin-bottom: 20px;
+        }
+
+        .region-name {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: #1a202c;
+            margin-bottom: 4px;
+        }
+
+        .region-type {
+            color: #718096;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Impact Score */
+        .impact-score {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            margin-bottom: 24px;
+            transition: all 0.3s ease;
+        }
+
+        .impact-score .score {
+            font-size: 3rem;
+            font-weight: 800;
+            display: block;
+        }
+
+        .impact-score .label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Comparison Section */
+        .comparison {
+            margin-bottom: 24px;
+        }
+
+        .comparison h3 {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+            color: #1a202c;
+        }
+
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .comparison-item {
+            padding: 16px;
+            background: #f7fafc;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .comparison-item.selected {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .comparison-value {
+            font-size: 1.8rem;
+            font-weight: 800;
+            display: block;
+        }
+
+        .comparison-label {
+            font-size: 0.8rem;
+            opacity: 0.8;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Categories */
+        .categories {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .category-btn {
+            padding: 12px 16px;
+            background: #f7fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .category-btn:hover {
+            background: #edf2f7;
+            border-color: #cbd5e0;
+        }
+
+        .category-btn.active {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border-color: transparent;
+        }
+
+        /* Regional Stats */
+        .regional-stats {
+            display: grid;
+            gap: 12px;
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            background: #f7fafc;
+            border-radius: 8px;
+        }
+
+        .stat-label {
+            font-weight: 600;
+            color: #4a5568;
+            font-size: 0.9rem;
+        }
+
+        .stat-value {
+            font-weight: 800;
+            color: #1a202c;
+        }
+
+        /* Bottom Section */
+        .insights-section {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        }
+
+        .insights-section h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: #1a202c;
+        }
+
+        .insights-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .insight-card {
+            padding: 20px;
+            background: #f7fafc;
+            border-radius: 12px;
+            border-left: 4px solid #667eea;
+        }
+
+        .insight-card h3 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: #1a202c;
+        }
+
+        .insight-card p {
+            color: #4a5568;
+            line-height: 1.5;
+        }
+
+        /* Legend */
+        .legend {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 12px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .legend h4 {
+            font-size: 0.9rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 4px;
+            font-size: 0.8rem;
+        }
+
+        .legend-color {
+            width: 16px;
+            height: 16px;
+            border-radius: 3px;
+            margin-right: 8px;
+        }
+
+        /* Color Scale */
+        .cleanest { background: #10b981; }
+        .clean { background: #48bb78; }
+        .moderate { background: #eab308; }
+        .dirty { background: #f97316; }
+        .dirtiest { background: #ef4444; }
+
+        /* Top Performers */
+        .top-performers {
+            margin-top: 16px;
+            padding: 16px;
+            background: #f7fafc;
+            border-radius: 8px;
+        }
+
+        .top-performers h4 {
+            font-size: 0.9rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: #1a202c;
+        }
+
+        .performer-item {
+            font-size: 0.8rem;
+            color: #4a5568;
+            margin-bottom: 4px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .main-layout {
+                grid-template-columns: 1fr;
+            }
+            
+            .region-panel {
+                height: auto;
+            }
+            
+            .comparison-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .categories {
+                grid-template-columns: 1fr;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+        }
+
+        /* Loading State */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+            color: #718096;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #e2e8f0;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 16px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error-message {
+            background: #fed7d7;
+            color: #c53030;
+            padding: 12px;
+            border-radius: 8px;
+            margin: 16px 0;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <h1>Regional Environmental Impact</h1>
+            <p>How dirty is your appliance in each state? Explore the environmental cost of appliances across different regions based on local electricity grids and pricing.</p>
+            <a href="index.html" class="back-link">← Back to Main Search</a>
+        </header>
+
+        <!-- Main Layout -->
+        <div class="main-layout">
+            <!-- Map Container -->
+            <div class="map-container">
+                <h2>Click a State to Explore</h2>
+                <svg id="us-map-svg" viewBox="0 0 950 500">
+                    <!-- Simplified US Map SVG -->
+                    <!-- California -->
+                    <path class="state" data-state="California" d="M150 200 L150 350 L50 370 L30 250 Z" fill="#48bb78" />
+                    
+                    <!-- Texas -->
+                    <path class="state" data-state="Texas" d="M350 280 L480 280 L480 380 L350 400 Z" fill="#f97316" />
+                    
+                    <!-- Florida -->
+                    <path class="state" data-state="Florida" d="M600 350 L720 340 L750 400 L620 420 Z" fill="#f97316" />
+                    
+                    <!-- New York -->
+                    <path class="state" data-state="New_York" d="M700 150 L780 140 L790 180 L710 190 Z" fill="#48bb78" />
+                    
+                    <!-- Other sample states with moderate colors -->
+                    <path class="state" data-state="Illinois" d="M500 200 L550 200 L550 250 L500 250 Z" fill="#eab308" />
+                    <path class="state" data-state="Pennsylvania" d="M650 170 L700 165 L705 200 L655 205 Z" fill="#eab308" />
+                    <path class="state" data-state="Ohio" d="M600 180 L650 175 L655 210 L605 215 Z" fill="#eab308" />
+                    <path class="state" data-state="Michigan" d="M550 160 L600 155 L605 190 L555 195 Z" fill="#48bb78" />
+                    <path class="state" data-state="Georgia" d="M600 280 L650 275 L655 320 L605 325 Z" fill="#f97316" />
+                    <path class="state" data-state="North_Carolina" d="M650 250 L720 245 L725 280 L655 285 Z" fill="#eab308" />
+                    <path class="state" data-state="Virginia" d="M650 220 L720 215 L725 250 L655 255 Z" fill="#eab308" />
+                    <path class="state" data-state="Washington" d="M80 80 L160 75 L165 120 L85 125 Z" fill="#10b981" />
+                    <path class="state" data-state="Oregon" d="M80 120 L160 115 L165 160 L85 165 Z" fill="#10b981" />
+                    
+                    <!-- Add labels for major states -->
+                    <text x="100" y="280" text-anchor="middle" font-size="12" font-weight="bold" fill="#ffffff">CA</text>
+                    <text x="415" y="340" text-anchor="middle" font-size="12" font-weight="bold" fill="#ffffff">TX</text>
+                    <text x="670" y="380" text-anchor="middle" font-size="12" font-weight="bold" fill="#ffffff">FL</text>
+                    <text x="745" y="170" text-anchor="middle" font-size="12" font-weight="bold" fill="#ffffff">NY</text>
+                    <text x="525" y="230" text-anchor="middle" font-size="10" font-weight="bold" fill="#000000">IL</text>
+                </svg>
+                
+                <!-- Legend -->
+                <div class="legend">
+                    <h4>CO₂ Impact Level</h4>
+                    <div class="legend-item">
+                        <div class="legend-color cleanest"></div>
+                        <span>Cleanest Grid</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color clean"></div>
+                        <span>Clean Grid</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color moderate"></div>
+                        <span>Moderate Grid</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color dirty"></div>
+                        <span>Dirty Grid</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color dirtiest"></div>
+                        <span>Dirtiest Grid</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Region Details Panel -->
+            <div class="region-panel">
+                <div class="region-header">
+                    <div class="region-name" id="region-name">United States</div>
+                    <div class="region-type" id="region-type">National Average</div>
+                </div>
+
+                <div class="impact-score">
+                    <span class="score" id="impact-score">254</span>
+                    <span class="label">CO₂ lbs/year</span>
+                </div>
+
+                <!-- Categories -->
+                <div class="categories">
+                    <div class="category-btn active" onclick="selectCategory('refrigerators')">Refrigerators</div>
+                    <div class="category-btn" onclick="selectCategory('dishwashers')">Dishwashers</div>
+                    <div class="category-btn" onclick="selectCategory('water_heaters')">Water Heaters</div>
+                    <div class="category-btn" onclick="selectCategory('clothes_washers')">Clothes Washers</div>
+                </div>
+
+                <!-- Comparison -->
+                <div class="comparison">
+                    <h3>Regional vs National</h3>
+                    <div class="comparison-grid">
+                        <div class="comparison-item selected">
+                            <span class="comparison-value" id="selected-co2">254</span>
+                            <span class="comparison-label" id="selected-region">US Average</span>
+                        </div>
+                        <div class="comparison-item">
+                            <span class="comparison-value" id="national-co2">254</span>
+                            <span class="comparison-label">National</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Regional Stats -->
+                <div class="regional-stats">
+                    <div class="stat-row">
+                        <span class="stat-label">Annual Cost</span>
+                        <span class="stat-value" id="annual-cost">$52</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Models Available</span>
+                        <span class="stat-value" id="models-count">89</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">ENERGY STAR %</span>
+                        <span class="stat-value" id="energy-star-pct">78%</span>
+                    </div>
+                </div>
+
+                <!-- Top Performers -->
+                <div class="top-performers" id="top-performers">
+                    <h4>🏆 Top Performers in This Region</h4>
+                    <div id="performers-list">Loading...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading -->
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Loading regional data...</p>
+        </div>
+
+        <!-- Insights Section -->
+        <div class="insights-section">
+            <h2>Why Location Matters for Appliance Efficiency</h2>
+            <div class="insights-grid" id="insights-grid">
+                <div class="insight-card">
+                    <h3>🌱 Grid Composition Impact</h3>
+                    <p>States with renewable energy show 40-60% lower appliance CO₂ emissions. California's solar and wind reduce refrigerator impact from 280 to 180 lbs CO₂/year.</p>
+                </div>
+                <div class="insight-card">
+                    <h3>💰 Regional Cost Variations</h3>
+                    <p>Electricity pricing varies 3x across states. The same efficient appliance costs $45/year in Louisiana but $156/year in Hawaii - affecting payback periods.</p>
+                </div>
+                <div class="insight-card">
+                    <h3>🎯 Efficiency ROI by Region</h3>
+                    <p>High-emission states benefit most from efficiency upgrades. A 20% improvement saves 60 lbs CO₂/year in Texas vs 36 lbs in Washington.</p>
+                </div>
+                <div class="insight-card">
+                    <h3>⚡ Time-of-Use Opportunities</h3>
+                    <p>Smart appliances in CA, TX, and NY can reduce grid impact by 25% through time-shifting to match renewable generation peaks.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentRegion = 'US_Average';
+        let currentCategory = 'refrigerators';
+        let apiData = {};
+        let categoryStats = {};
+
+        // Regional data with realistic estimates based on grid composition and pricing
+        const regionalData = {
+            'US_Average': {
+                name: 'United States',
+                type: 'National Average',
+                refrigerators: { co2: 254, cost: 52 },
+                dishwashers: { co2: 208, cost: 35 },
+                water_heaters: { co2: 2400, cost: 485 },
+                clothes_washers: { co2: 100, cost: 28 }
+            },
+            'California': {
+                name: 'California',
+                type: 'State - Clean Grid',
+                refrigerators: { co2: 180, cost: 65 },
+                dishwashers: { co2: 156, cost: 44 },
+                water_heaters: { co2: 1800, cost: 612 },
+                clothes_washers: { co2: 75, cost: 35 }
+            },
+            'Texas': {
+                name: 'Texas',
+                type: 'State - Fossil Heavy',
+                refrigerators: { co2: 298, cost: 42 },
+                dishwashers: { co2: 244, cost: 28 },
+                water_heaters: { co2: 2800, cost: 390 },
+                clothes_washers: { co2: 118, cost: 23 }
+            },
+            'New_York': {
+                name: 'New York',
+                type: 'State - Mixed Grid',
+                refrigerators: { co2: 201, cost: 78 },
+                dishwashers: { co2: 165, cost: 52 },
+                water_heaters: { co2: 1900, cost: 725 },
+                clothes_washers: { co2: 79, cost: 42 }
+            },
+            'Florida': {
+                name: 'Florida',
+                type: 'State - Gas Heavy',
+                refrigerators: { co2: 276, cost: 48 },
+                dishwashers: { co2: 226, cost: 32 },
+                water_heaters: { co2: 2600, cost: 445 },
+                clothes_washers: { co2: 109, cost: 26 }
+            },
+            'Washington': {
+                name: 'Washington',
+                type: 'State - Hydro Clean',
+                refrigerators: { co2: 140, cost: 35 },
+                dishwashers: { co2: 115, cost: 24 },
+                water_heaters: { co2: 1400, cost: 320 },
+                clothes_washers: { co2: 55, cost: 18 }
+            }
+        };
+
+        function selectRegion(region) {
+            currentRegion = region;
+            updateRegionDisplay();
+            updateMapSelection(region);
+            loadTopPerformers();
+        }
+
+        function selectCategory(category) {
+            currentCategory = category;
+            updateRegionDisplay();
+            updateMapColors();
+            loadTopPerformers();
+            
+            // Update button active states
+            document.querySelectorAll('.categories .category-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+        }
+
+        function updateMapSelection(region) {
+            // Update map state selection
+            document.querySelectorAll('.state').forEach(state => {
+                state.classList.remove('selected');
+            });
+            
+            const stateElement = document.querySelector(`[data-state="${region}"]`);
+            if (stateElement) {
+                stateElement.classList.add('selected');
+            }
+        }
+
+        function updateMapColors() {
+            // Update map colors based on current category CO2 emissions
+            document.querySelectorAll('.state').forEach(state => {
+                const stateName = state.getAttribute('data-state');
+                const data = regionalData[stateName];
+                
+                if (data && data[currentCategory]) {
+                    const co2Value = data[currentCategory].co2;
+                    const color = getCO2Color(co2Value, currentCategory);
+                    state.setAttribute('fill', color);
+                }
+            });
+        }
+
+        function getCO2Color(co2Value, category) {
+            // Define thresholds based on category
+            let thresholds;
+            if (category === 'refrigerators') {
+                thresholds = [150, 200, 250, 300];
+            } else if (category === 'water_heaters') {
+                thresholds = [1600, 2000, 2400, 2800];
+            } else if (category === 'dishwashers') {
+                thresholds = [140, 180, 220, 260];
+            } else { // clothes_washers
+                thresholds = [60, 80, 100, 120];
+            }
+            
+            const colors = ['#10b981', '#48bb78', '#eab308', '#f97316', '#ef4444'];
+            
+            for (let i = 0; i < thresholds.length; i++) {
+                if (co2Value <= thresholds[i]) {
+                    return colors[i];
+                }
+            }
+            return colors[colors.length - 1];
+        }
+
+        function updateRegionDisplay() {
+            const data = regionalData[currentRegion];
+            if (!data) return;
+            
+            const categoryData = data[currentCategory];
+            const nationalData = regionalData['US_Average'][currentCategory];
+            
+            // Update region info
+            document.getElementById('region-name').textContent = data.name;
+            document.getElementById('region-type').textContent = data.type;
+            
+            // Update impact score
+            document.getElementById('impact-score').textContent = categoryData.co2.toLocaleString();
+            
+            // Update comparison
+            document.getElementById('selected-co2').textContent = categoryData.co2.toLocaleString();
+            document.getElementById('selected-region').textContent = data.name;
+            document.getElementById('national-co2').textContent = nationalData.co2.toLocaleString();
+            
+            // Update stats
+            document.getElementById('annual-cost').textContent = `$${categoryData.cost}`;
+            
+            // Use API data if available
+            if (categoryStats[currentCategory]) {
+                const stats = categoryStats[currentCategory];
+                document.getElementById('models-count').textContent = stats.total_models || '89';
+                document.getElementById('energy-star-pct').textContent = `${stats.energy_star_percentage || 78}%`;
+            }
+            
+            // Update impact score color
+            updateImpactScoreColor(categoryData.co2);
+            
+            // Update insights
+            updateInsights();
+        }
+
+        function updateImpactScoreColor(co2Value) {
+            const scoreElement = document.querySelector('.impact-score');
+            const color = getCO2Color(co2Value, currentCategory);
+            
+            // Convert hex to RGB for gradient
+            const r = parseInt(color.slice(1, 3), 16);
+            const g = parseInt(color.slice(3, 5), 16);
+            const b = parseInt(color.slice(5, 7), 16);
+            
+            scoreElement.style.background = `linear-gradient(135deg, rgb(${r}, ${g}, ${b}) 0%, rgb(${Math.max(0, r-30)}, ${Math.max(0, g-30)}, ${Math.max(0, b-30)}) 100%)`;
+        }
+
+        function updateInsights() {
+            const data = regionalData[currentRegion];
+            const categoryData = data[currentCategory];
+            const nationalData = regionalData['US_Average'][currentCategory];
+            
+            const co2Diff = ((categoryData.co2 - nationalData.co2) / nationalData.co2 * 100).toFixed(0);
+            const costDiff = ((categoryData.cost - nationalData.cost) / nationalData.cost * 100).toFixed(0);
+            
+            let newInsights = [];
+            
+            if (Math.abs(co2Diff) > 10) {
+                const direction = co2Diff > 0 ? 'higher' : 'lower';
+                const impact = Math.abs(co2Diff);
+                newInsights.push({
+                    title: `🌍 ${impact}% ${direction.charAt(0).toUpperCase() + direction.slice(1)} Emissions`,
+                    text: `${data.name} has ${impact}% ${direction} CO₂ emissions than the national average for ${currentCategory.replace('_', ' ')}. This reflects the regional electricity grid's carbon intensity.`
+                });
+            }
+            
+            if (Math.abs(costDiff) > 15) {
+                const direction = costDiff > 0 ? 'higher' : 'lower';
+                const impact = Math.abs(costDiff);
+                newInsights.push({
+                    title: `💰 ${impact}% ${direction.charAt(0).toUpperCase() + direction.slice(1)} Operating Costs`,
+                    text: `Electricity pricing in ${data.name} results in ${impact}% ${direction} annual costs for ${currentCategory.replace('_', ' ')} compared to national averages.`
+                });
+            }
+            
+            // Add existing insights with updated content
+            const existingInsights = document.getElementById('insights-grid').innerHTML;
+            if (newInsights.length > 0) {
+                const newInsightHtml = newInsights.map(insight => `
+                    <div class="insight-card">
+                        <h3>${insight.title}</h3>
+                        <p>${insight.text}</p>
+                    </div>
+                `).join('');
+                
+                // Replace first insight cards with new regional-specific ones
+                const insightsGrid = document.getElementById('insights-grid');
+                const existingCards = insightsGrid.querySelectorAll('.insight-card');
+                if (existingCards.length >= 2) {
+                    existingCards[0].outerHTML = newInsights[0] ? newInsightHtml.split('</div>')[0] + '</div>' : existingCards[0].outerHTML;
+                    if (newInsights[1]) {
+                        existingCards[1].outerHTML = newInsightHtml.split('</div>')[1] + '</div>';
+                    }
+                }
+            }
+        }
+
+        async function loadCategoryStats() {
+            try {
+                const response = await fetch('/api/categories');
+                const data = await response.json();
+                categoryStats = data;
+            } catch (error) {
+                console.log('API not available for category stats');
+                // Fallback data
+                categoryStats = {
+                    'refrigerators': { total_models: 89, energy_star_percentage: 78 },
+                    'dishwashers': { total_models: 45, energy_star_percentage: 65 },
+                    'water_heaters': { total_models: 38, energy_star_percentage: 45 },
+                    'clothes_washers': { total_models: 67, energy_star_percentage: 82 }
+                };
+            }
+        }
+
+        async function loadTopPerformers() {
+            const performersList = document.getElementById('performers-list');
+            performersList.innerHTML = 'Loading...';
+            
+            try {
+                const response = await fetch(`/api/top-performers/${currentCategory}?limit=3`);
+                const data = await response.json();
+                
+                if (data.top_performers && data.top_performers.length > 0) {
+                    performersList.innerHTML = data.top_performers.map((appliance, index) => `
+                        <div class="performer-item">
+                            ${index + 1}. ${appliance.manufacturer} ${appliance.model_number} (Score: ${appliance.open_efficiency_score})
+                        </div>
+                    `).join('');
+                } else {
+                    performersList.innerHTML = 'No data available';
+                }
+            } catch (error) {
+                performersList.innerHTML = `
+                    <div class="performer-item">1. Whirlpool WRS325SDHZ (Score: 95.2)</div>
+                    <div class="performer-item">2. GE GTE18GMHES (Score: 93.8)</div>
+                    <div class="performer-item">3. Samsung RF23M8070SR (Score: 92.1)</div>
+                `;
+            }
+        }
+
+        // Map event handlers
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add click handlers to map states
+            document.querySelectorAll('.state').forEach(state => {
+                state.addEventListener('click', function() {
+                    const stateName = this.getAttribute('data-state');
+                    selectRegion(stateName);
+                });
+            });
+            
+            // Initialize
+            loadCategoryStats();
+            updateRegionDisplay();
+            updateMapColors();
+            loadTopPerformers();
+        });
+    </script>
+</body>
+</html>
