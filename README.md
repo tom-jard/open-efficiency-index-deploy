@@ -4,7 +4,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/yourusername/open-efficiency-index)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/tom-jard/open-efficiency-index-deploy)
 
 [🌐 **Live Demo**](https://open-efficiency-index.vercel.app) | [📊 **Search Database**](https://open-efficiency-index.vercel.app/web/) | [🗺️ **Regional Map**](https://open-efficiency-index.vercel.app/web/regional-efficiency-map.html)
 
@@ -31,13 +31,13 @@ Unlike ENERGY STAR's binary qualified/not-qualified ratings, the Open Efficiency
 ## 🚀 **Quick Deploy**
 
 ### **One-Click Vercel Deployment**
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/yourusername/open-efficiency-index)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/tom-jard/open-efficiency-index-deploy)
 
 ### **Local Development**
 ```bash
 # Clone and setup
-git clone https://github.com/yourusername/open-efficiency-index.git
-cd open-efficiency-index
+git clone https://github.com/tom-jard/open-efficiency-index-deploy.git
+cd open-efficiency-index-deploy
 pip install -r requirements.txt
 
 # Start API server
@@ -202,8 +202,8 @@ Complete production-ready system delivered through focused development sessions,
 ### **Local Development**
 ```bash
 # Clone repository
-git clone https://github.com/yourusername/open-efficiency-index.git
-cd open-efficiency-index
+git clone https://github.com/tom-jard/open-efficiency-index-deploy.git
+cd open-efficiency-index-deploy
 
 # Install dependencies
 pip install -r requirements.txt
@@ -318,8 +318,8 @@ We welcome contributions! Areas needing help:
 
 ## 📞 **Contact & Support**
 
-- **Issues**: [GitHub Issues](https://github.com/yourusername/open-efficiency-index/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/yourusername/open-efficiency-index/discussions)
+- **Issues**: [GitHub Issues](https://github.com/tom-jard/open-efficiency-index-deploy/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/tom-jard/open-efficiency-index-deploy/discussions)
 - **Project Lead**: Thomas Jardine (CELI Fellow 2025)
 - **Live Demo**: [open-efficiency-index.vercel.app](https://open-efficiency-index.vercel.app)
 
