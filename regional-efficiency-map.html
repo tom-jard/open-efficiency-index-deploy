@@ -1,0 +1,1028 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Regional Efficiency Map - Open Efficiency Index</title>
+    
+    <!-- Preload critical fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- Import editorial design system from landing -->
+    <link rel="stylesheet" href="../landing/styles.css">
+    
+    <script src='https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js'></script>
+    <link href='https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css' rel='stylesheet' />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-display);
+            background: var(--color-white);
+            line-height: 1.6;
+            color: var(--color-gray-900);
+        }
+
+        .container {
+            max-width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding-top: 80px; /* Account for fixed header */
+        }
+
+        /* Page Title - More Compact */
+        .page-title {
+            text-align: center;
+            padding: var(--space-3) var(--space-6) var(--space-2);
+            background: var(--color-white);
+            border-bottom: 1px solid var(--color-gray-200);
+            flex-shrink: 0;
+        }
+        
+        .page-title h1 {
+            font-size: var(--text-2xl);
+            font-weight: 800;
+            color: var(--color-black);
+            margin-bottom: var(--space-1);
+        }
+        
+        .page-title p {
+            font-size: var(--text-sm);
+            color: var(--color-gray-600);
+        }
+
+        /* Main Layout */
+        .main-layout {
+            display: flex;
+            flex: 1;
+            height: calc(100vh - 80px);
+        }
+
+        /* Map Container */
+        .map-container {
+            flex: 1;
+            position: relative;
+        }
+
+        #map {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Data Panel */
+        .data-panel {
+            width: 380px;
+            background: white;
+            box-shadow: -2px 0 10px rgba(0,0,0,0.1);
+            overflow-y: auto;
+            padding: 14px;
+            z-index: 100;
+        }
+
+        /* Region Info */
+        .region-info {
+            margin-bottom: 12px;
+        }
+
+        .region-name {
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: #1a202c;
+            margin-bottom: 2px;
+        }
+
+        .region-classification {
+            color: #0066cc;
+            font-weight: 600;
+            font-size: 0.85rem;
+            margin-bottom: 6px;
+        }
+
+        .region-score {
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: #0066cc;
+            margin-bottom: 6px;
+        }
+
+        .region-ranking {
+            color: #4a5568;
+            font-size: 0.85rem;
+            margin-bottom: 10px;
+        }
+
+        /* Category Selector */
+        .category-selector {
+            margin-bottom: 10px;
+        }
+
+        .category-tabs {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .category-tab {
+            padding: 8px 12px;
+            background: #f7fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #4a5568;
+            transition: all 0.2s;
+        }
+
+        .category-tab.active {
+            background: #0066cc;
+            color: white;
+            border-color: #0066cc;
+        }
+
+        /* Efficiency Breakdown - New Table Layout */
+        .efficiency-breakdown {
+            margin-bottom: 10px;
+        }
+
+        .breakdown-header {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: #1a202c;
+        }
+
+        .comparison-headers {
+            display: grid;
+            grid-template-columns: 2fr 1.1fr 1.1fr 1.2fr;
+            gap: 6px;
+            margin-bottom: 6px;
+            padding: 6px 0;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .header-spacer {
+            /* Empty space for metric labels */
+        }
+
+        .header-column {
+            text-align: center;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: #4a5568;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .selected-header {
+            color: #0066cc;
+        }
+
+        .national-header {
+            color: #718096;
+        }
+
+        .diff-header {
+            color: #2d3748;
+        }
+
+        .metric-row {
+            display: grid;
+            grid-template-columns: 2fr 1.1fr 1.1fr 1.2fr;
+            gap: 6px;
+            align-items: center;
+            padding: 6px 0;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .metric-label {
+            font-weight: 600;
+            color: #4a5568;
+            font-size: 0.9rem;
+        }
+
+        .metric-value-cell {
+            text-align: center;
+            font-weight: 700;
+            font-size: 0.9rem;
+            padding: 8px 4px;
+            border-radius: 6px;
+            min-width: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 40px;
+        }
+
+        .metric-value-cell.selected {
+            background: #0066cc;
+            color: white;
+        }
+
+        .metric-value-cell.national {
+            background: #f7fafc;
+            color: #4a5568;
+            border: 1px solid #e2e8f0;
+            min-width: 70px;
+            min-height: 40px;
+        }
+
+        .metric-value-cell.difference {
+            background: transparent;
+            color: #2d3748;
+            font-weight: 800;
+            min-width: 70px;
+            min-height: 40px;
+        }
+
+        .metric-value-cell.difference.better {
+            color: #10b981;
+        }
+
+        .metric-value-cell.difference.worse {
+            color: #ef4444;
+        }
+
+        .metric-value-cell.difference.neutral {
+            color: #718096;
+        }
+
+        /* Legend */
+        .legend {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(255,255,255,0.95);
+            padding: 12px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 1000;
+        }
+
+        .legend h4 {
+            font-size: 0.85rem;
+            font-weight: 700;
+            margin-bottom: 6px;
+            color: #1a202c;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 3px;
+            font-size: 0.75rem;
+        }
+
+        .legend-color {
+            width: 14px;
+            height: 14px;
+            border-radius: 3px;
+            margin-right: 6px;
+        }
+
+        /* Color scale for CO2 emissions */
+        .excellent { background: #10b981; }
+        .very-good { background: #48bb78; }
+        .good { background: #eab308; }
+        .fair { background: #f97316; }
+        .poor { background: #ef4444; }
+
+        /* Geography Selector */
+        .geography-selector {
+            margin-bottom: 10px;
+        }
+
+        .geo-tabs {
+            display: flex;
+            gap: 4px;
+            background: #f7fafc;
+            padding: 4px;
+            border-radius: 8px;
+        }
+
+        .geo-tab {
+            flex: 1;
+            padding: 8px;
+            text-align: center;
+            background: transparent;
+            border: none;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #4a5568;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .geo-tab.active {
+            background: white;
+            color: #0066cc;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        /* Loading State */
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255,255,255,0.95);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 2000;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #e2e8f0;
+            border-top: 3px solid #0066cc;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 12px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .main-layout {
+                flex-direction: column;
+            }
+            
+            .data-panel {
+                width: 100%;
+                height: 50vh;
+                order: 2;
+            }
+            
+            .map-container {
+                height: 50vh;
+                order: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header - Consistent with Landing Page -->
+        <header class="header">
+            <nav class="nav">
+                <div class="nav-brand">
+                    <span class="brand-mark">●</span>
+                    <span class="brand-text">Open Efficiency Index</span>
+                </div>
+                
+                <div class="nav-actions">
+                    <a href="../index.html" class="nav-link">← Back</a>
+                    <a href="index.html" class="nav-link">Database</a>
+                    <a href="../index.html#api" class="btn-primary">
+                        API Docs →
+                    </a>
+                </div>
+            </nav>
+        </header>
+        
+        <!-- Page Title -->
+        <div class="page-title">
+            <h1>Regional Appliance Efficiency Map</h1>
+            <p>How clean is your appliance across different regions? Explore efficiency, cost, and carbon impact by geography.</p>
+        </div>
+
+        <!-- Main Layout -->
+        <div class="main-layout">
+            <!-- Map Container -->
+            <div class="map-container">
+                <div id="map"></div>
+                
+                <!-- Legend -->
+                <div class="legend">
+                    <h4>CO₂ Impact Level</h4>
+                    <div class="legend-item">
+                        <div class="legend-color excellent"></div>
+                        <span>Excellent (0-150 lbs/year)</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color very-good"></div>
+                        <span>Very Good (150-200)</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color good"></div>
+                        <span>Good (200-250)</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color fair"></div>
+                        <span>Fair (250-300)</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color poor"></div>
+                        <span>Poor (300+ lbs/year)</span>
+                    </div>
+                </div>
+                
+                <!-- Loading State -->
+                <div class="loading" id="loading" style="display: none;">
+                    <div class="spinner"></div>
+                    <p>Loading efficiency data...</p>
+                </div>
+            </div>
+
+            <!-- Data Panel -->
+            <div class="data-panel">
+                <!-- Region Info -->
+                <div class="region-info">
+                    <div class="region-name" id="region-name">United States</div>
+                    <div class="region-classification" id="region-classification">National Average</div>
+                    <div class="region-score" id="region-score">254</div>
+                    <div class="region-ranking" id="region-ranking">CO₂ lbs/year for refrigerators</div>
+                </div>
+
+                <!-- Geography Selector -->
+                <div class="geography-selector" style="display: none;">
+                    <div class="geo-tabs">
+                        <button class="geo-tab" onclick="changeGeography('zip')">ZIP Codes</button>
+                        <button class="geo-tab" onclick="changeGeography('county')">Counties</button>
+                        <button class="geo-tab active" onclick="changeGeography('state')">States</button>
+                    </div>
+                </div>
+
+                <!-- Category Selector -->
+                <div class="category-selector">
+                    <div class="category-tabs">
+                        <div class="category-tab active" onclick="selectCategory('refrigerators')">Refrigerators</div>
+                        <div class="category-tab" onclick="selectCategory('dishwashers')">Dishwashers</div>
+                        <div class="category-tab" onclick="selectCategory('water_heaters')">Water Heaters</div>
+                        <div class="category-tab" onclick="selectCategory('clothes_washers')">Washers</div>
+                    </div>
+                </div>
+
+                <!-- Regional Comparison Table -->
+                <div class="efficiency-breakdown">
+                    <div class="breakdown-header">Regional vs National Comparison</div>
+                    
+                    <!-- Table Headers -->
+                    <div class="comparison-headers">
+                        <div class="header-spacer"></div>
+                        <div class="header-column selected-header">
+                            <span id="selected-region-header">This Region</span>
+                        </div>
+                        <div class="header-column national-header">
+                            <select id="comparison-baseline" onchange="changeComparisonBaseline()" style="background: transparent; border: none; font-weight: 700; color: #718096; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; cursor: pointer;">
+                                <option value="US">US</option>
+                                <option value="AK">AK</option>
+                                <option value="AL">AL</option>
+                                <option value="AR">AR</option>
+                                <option value="AZ">AZ</option>
+                                <option value="CA">CA</option>
+                                <option value="CO">CO</option>
+                                <option value="CT">CT</option>
+                                <option value="DE">DE</option>
+                                <option value="FL">FL</option>
+                                <option value="GA">GA</option>
+                                <option value="HI">HI</option>
+                                <option value="IA">IA</option>
+                                <option value="ID">ID</option>
+                                <option value="IL">IL</option>
+                                <option value="IN">IN</option>
+                                <option value="KS">KS</option>
+                                <option value="KY">KY</option>
+                                <option value="LA">LA</option>
+                                <option value="MA">MA</option>
+                                <option value="MD">MD</option>
+                                <option value="ME">ME</option>
+                                <option value="MI">MI</option>
+                                <option value="MN">MN</option>
+                                <option value="MO">MO</option>
+                                <option value="MS">MS</option>
+                                <option value="MT">MT</option>
+                                <option value="NC">NC</option>
+                                <option value="ND">ND</option>
+                                <option value="NE">NE</option>
+                                <option value="NH">NH</option>
+                                <option value="NJ">NJ</option>
+                                <option value="NM">NM</option>
+                                <option value="NV">NV</option>
+                                <option value="NY">NY</option>
+                                <option value="OH">OH</option>
+                                <option value="OK">OK</option>
+                                <option value="OR">OR</option>
+                                <option value="PA">PA</option>
+                                <option value="RI">RI</option>
+                                <option value="SC">SC</option>
+                                <option value="SD">SD</option>
+                                <option value="TN">TN</option>
+                                <option value="TX">TX</option>
+                                <option value="UT">UT</option>
+                                <option value="VA">VA</option>
+                                <option value="VT">VT</option>
+                                <option value="WA">WA</option>
+                                <option value="WI">WI</option>
+                                <option value="WV">WV</option>
+                                <option value="WY">WY</option>
+                            </select>
+                        </div>
+                        <div class="header-column diff-header">
+                            <span>Difference</span>
+                        </div>
+                    </div>
+                    
+                    <div class="metric-row">
+                        <span class="metric-label">Annual CO₂ Emissions</span>
+                        <div class="metric-value-cell selected" id="co2-selected">254 lbs</div>
+                        <div class="metric-value-cell national" id="co2-national">254 lbs</div>
+                        <div class="metric-value-cell difference" id="co2-diff">—</div>
+                    </div>
+                    
+                    <div class="metric-row">
+                        <span class="metric-label">Annual Operating Cost</span>
+                        <div class="metric-value-cell selected" id="cost-selected">$52</div>
+                        <div class="metric-value-cell national" id="cost-national">$52</div>
+                        <div class="metric-value-cell difference" id="cost-diff">—</div>
+                    </div>
+                    
+                    <div class="metric-row">
+                        <span class="metric-label">Grid Carbon Intensity</span>
+                        <div class="metric-value-cell selected" id="grid-selected">0.92 lbs/kWh</div>
+                        <div class="metric-value-cell national" id="grid-national">0.92 lbs/kWh</div>
+                        <div class="metric-value-cell difference" id="grid-diff">—</div>
+                    </div>
+                    
+                    <div class="metric-row">
+                        <span class="metric-label">Electricity Price</span>
+                        <div class="metric-value-cell selected" id="price-selected">$0.13/kWh</div>
+                        <div class="metric-value-cell national" id="price-national">$0.13/kWh</div>
+                        <div class="metric-value-cell difference" id="price-diff">—</div>
+                    </div>
+                    
+                    <div class="metric-row">
+                        <span class="metric-label">Efficiency Rating Avg</span>
+                        <div class="metric-value-cell selected" id="efficiency-selected">21.1 ft³/kWh</div>
+                        <div class="metric-value-cell national" id="efficiency-national">21.1 ft³/kWh</div>
+                        <div class="metric-value-cell difference" id="efficiency-diff">—</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Mapbox (you'll need a token)
+        mapboxgl.accessToken = 'pk.eyJ1IjoiaXBqYXJkaW5lIiwiYSI6ImNtZjR1c3hjcTA5cGYya29wNThzaXB6cG8ifQ.vOm73NfcQ1yTpv38-dS6jQ';
+        
+        let map;
+        let currentGeography = 'state';
+        let currentCategory = 'refrigerators';
+        let selectedRegions = [];
+        let currentRegion = 'US';
+        let comparisonBaseline = 'US'; // Track comparison baseline
+        
+        // Regional efficiency data (all 50 states with realistic grid and pricing data)
+        const regionalData = {
+            states: {
+                'US': {
+                    name: 'United States', classification: 'National Average',
+                    refrigerators: { co2: 254, cost: 52, grid: 0.92, price: 0.13, efficiency: 21.1 },
+                    dishwashers: { co2: 208, cost: 35, grid: 0.92, price: 0.13, efficiency: 5.8 },
+                    water_heaters: { co2: 2400, cost: 485, grid: 0.92, price: 0.13, efficiency: 0.95 },
+                    clothes_washers: { co2: 100, cost: 28, grid: 0.92, price: 0.13, efficiency: 4.5 }
+                },
+                // CLEANEST GRIDS (Hydro/Nuclear/Renewables)
+                'WA': { name: 'Washington', classification: 'Hydro-Clean Grid', ranking: 'ranks 1st out of 50 states for clean electricity',
+                    refrigerators: { co2: 140, cost: 35, grid: 0.50, price: 0.10, efficiency: 21.1 }, dishwashers: { co2: 115, cost: 24, grid: 0.50, price: 0.10, efficiency: 5.8 }, water_heaters: { co2: 1400, cost: 320, grid: 0.50, price: 0.10, efficiency: 0.95 }, clothes_washers: { co2: 55, cost: 18, grid: 0.50, price: 0.10, efficiency: 4.5 } },
+                'OR': { name: 'Oregon', classification: 'Hydro-Clean Grid', ranking: 'ranks 2nd out of 50 states for clean electricity',
+                    refrigerators: { co2: 145, cost: 38, grid: 0.52, price: 0.11, efficiency: 21.1 }, dishwashers: { co2: 119, cost: 26, grid: 0.52, price: 0.11, efficiency: 5.8 }, water_heaters: { co2: 1450, cost: 340, grid: 0.52, price: 0.11, efficiency: 0.95 }, clothes_washers: { co2: 57, cost: 19, grid: 0.52, price: 0.11, efficiency: 4.5 } },
+                'VT': { name: 'Vermont', classification: 'Nuclear/Hydro Grid', ranking: 'ranks 3rd out of 50 states for clean electricity',
+                    refrigerators: { co2: 148, cost: 58, grid: 0.53, price: 0.17, efficiency: 21.1 }, dishwashers: { co2: 121, cost: 39, grid: 0.53, price: 0.17, efficiency: 5.8 }, water_heaters: { co2: 1480, cost: 535, grid: 0.53, price: 0.17, efficiency: 0.95 }, clothes_washers: { co2: 58, cost: 27, grid: 0.53, price: 0.17, efficiency: 4.5 } },
+                'ID': { name: 'Idaho', classification: 'Hydro-Clean Grid', ranking: 'ranks 4th out of 50 states for clean electricity',
+                    refrigerators: { co2: 150, cost: 32, grid: 0.54, price: 0.09, efficiency: 21.1 }, dishwashers: { co2: 123, cost: 22, grid: 0.54, price: 0.09, efficiency: 5.8 }, water_heaters: { co2: 1500, cost: 295, grid: 0.54, price: 0.09, efficiency: 0.95 }, clothes_washers: { co2: 59, cost: 16, grid: 0.54, price: 0.09, efficiency: 4.5 } },
+                'CA': { name: 'California', classification: 'Renewable Grid', ranking: 'ranks 5th out of 50 states for clean electricity',
+                    refrigerators: { co2: 180, cost: 65, grid: 0.64, price: 0.22, efficiency: 21.1 }, dishwashers: { co2: 156, cost: 44, grid: 0.64, price: 0.22, efficiency: 5.8 }, water_heaters: { co2: 1800, cost: 612, grid: 0.64, price: 0.22, efficiency: 0.95 }, clothes_washers: { co2: 75, cost: 35, grid: 0.64, price: 0.22, efficiency: 4.5 } },
+                
+                // CLEAN GRIDS (Nuclear/Mixed Renewables)
+                'NH': { name: 'New Hampshire', classification: 'Nuclear Grid', ranking: 'ranks 6th out of 50 states for clean electricity',
+                    refrigerators: { co2: 185, cost: 62, grid: 0.66, price: 0.18, efficiency: 21.1 }, dishwashers: { co2: 152, cost: 42, grid: 0.66, price: 0.18, efficiency: 5.8 }, water_heaters: { co2: 1850, cost: 588, grid: 0.66, price: 0.18, efficiency: 0.95 }, clothes_washers: { co2: 73, cost: 31, grid: 0.66, price: 0.18, efficiency: 4.5 } },
+                'CT': { name: 'Connecticut', classification: 'Nuclear/Gas Grid', ranking: 'ranks 7th out of 50 states for clean electricity',
+                    refrigerators: { co2: 190, cost: 72, grid: 0.68, price: 0.21, efficiency: 21.1 }, dishwashers: { co2: 156, cost: 49, grid: 0.68, price: 0.21, efficiency: 5.8 }, water_heaters: { co2: 1900, cost: 672, grid: 0.68, price: 0.21, efficiency: 0.95 }, clothes_washers: { co2: 75, cost: 37, grid: 0.68, price: 0.21, efficiency: 4.5 } },
+                'NY': { name: 'New York', classification: 'Nuclear/Hydro Grid', ranking: 'ranks 8th out of 50 states for clean electricity',
+                    refrigerators: { co2: 201, cost: 78, grid: 0.71, price: 0.18, efficiency: 21.1 }, dishwashers: { co2: 165, cost: 52, grid: 0.71, price: 0.18, efficiency: 5.8 }, water_heaters: { co2: 1900, cost: 725, grid: 0.71, price: 0.18, efficiency: 0.95 }, clothes_washers: { co2: 79, cost: 42, grid: 0.71, price: 0.18, efficiency: 4.5 } },
+                'RI': { name: 'Rhode Island', classification: 'Gas/Nuclear Grid', ranking: 'ranks 9th out of 50 states for clean electricity',
+                    refrigerators: { co2: 205, cost: 71, grid: 0.73, price: 0.22, efficiency: 21.1 }, dishwashers: { co2: 168, cost: 48, grid: 0.73, price: 0.22, efficiency: 5.8 }, water_heaters: { co2: 2050, cost: 665, grid: 0.73, price: 0.22, efficiency: 0.95 }, clothes_washers: { co2: 81, cost: 38, grid: 0.73, price: 0.22, efficiency: 4.5 } },
+                'MA': { name: 'Massachusetts', classification: 'Gas/Nuclear Grid', ranking: 'ranks 10th out of 50 states for clean electricity',
+                    refrigerators: { co2: 210, cost: 74, grid: 0.75, price: 0.23, efficiency: 21.1 }, dishwashers: { co2: 172, cost: 50, grid: 0.75, price: 0.23, efficiency: 5.8 }, water_heaters: { co2: 2100, cost: 695, grid: 0.75, price: 0.23, efficiency: 0.95 }, clothes_washers: { co2: 83, cost: 40, grid: 0.75, price: 0.23, efficiency: 4.5 } },
+                
+                // MID-TIER GRIDS (Mixed Sources)
+                'NV': { name: 'Nevada', classification: 'Gas/Solar Grid', ranking: 'ranks 15th out of 50 states for clean electricity',
+                    refrigerators: { co2: 225, cost: 42, grid: 0.80, price: 0.12, efficiency: 21.1 }, dishwashers: { co2: 184, cost: 28, grid: 0.80, price: 0.12, efficiency: 5.8 }, water_heaters: { co2: 2250, cost: 385, grid: 0.80, price: 0.12, efficiency: 0.95 }, clothes_washers: { co2: 89, cost: 23, grid: 0.80, price: 0.12, efficiency: 4.5 } },
+                'ME': { name: 'Maine', classification: 'Hydro/Gas Grid', ranking: 'ranks 16th out of 50 states for clean electricity',
+                    refrigerators: { co2: 230, cost: 56, grid: 0.82, price: 0.16, efficiency: 21.1 }, dishwashers: { co2: 188, cost: 38, grid: 0.82, price: 0.16, efficiency: 5.8 }, water_heaters: { co2: 2300, cost: 522, grid: 0.82, price: 0.16, efficiency: 0.95 }, clothes_washers: { co2: 91, cost: 30, grid: 0.82, price: 0.16, efficiency: 4.5 } },
+                'AZ': { name: 'Arizona', classification: 'Nuclear/Gas Grid', ranking: 'ranks 20th out of 50 states for clean electricity',
+                    refrigerators: { co2: 240, cost: 45, grid: 0.85, price: 0.13, efficiency: 21.1 }, dishwashers: { co2: 196, cost: 31, grid: 0.85, price: 0.13, efficiency: 5.8 }, water_heaters: { co2: 2400, cost: 425, grid: 0.85, price: 0.13, efficiency: 0.95 }, clothes_washers: { co2: 95, cost: 25, grid: 0.85, price: 0.13, efficiency: 4.5 } },
+                'PA': { name: 'Pennsylvania', classification: 'Nuclear/Gas/Coal Grid', ranking: 'ranks 25th out of 50 states for clean electricity',
+                    refrigerators: { co2: 250, cost: 48, grid: 0.89, price: 0.14, efficiency: 21.1 }, dishwashers: { co2: 205, cost: 32, grid: 0.89, price: 0.14, efficiency: 5.8 }, water_heaters: { co2: 2500, cost: 465, grid: 0.89, price: 0.14, efficiency: 0.95 }, clothes_washers: { co2: 99, cost: 26, grid: 0.89, price: 0.14, efficiency: 4.5 } },
+                'IL': { name: 'Illinois', classification: 'Nuclear/Coal Grid', ranking: 'ranks 26th out of 50 states for clean electricity',
+                    refrigerators: { co2: 252, cost: 44, grid: 0.90, price: 0.13, efficiency: 21.1 }, dishwashers: { co2: 206, cost: 30, grid: 0.90, price: 0.13, efficiency: 5.8 }, water_heaters: { co2: 2520, cost: 415, grid: 0.90, price: 0.13, efficiency: 0.95 }, clothes_washers: { co2: 100, cost: 24, grid: 0.90, price: 0.13, efficiency: 4.5 } },
+                'NJ': { name: 'New Jersey', classification: 'Gas/Nuclear Grid', ranking: 'ranks 28th out of 50 states for clean electricity',
+                    refrigerators: { co2: 255, cost: 52, grid: 0.91, price: 0.15, efficiency: 21.1 }, dishwashers: { co2: 209, cost: 35, grid: 0.91, price: 0.15, efficiency: 5.8 }, water_heaters: { co2: 2550, cost: 485, grid: 0.91, price: 0.15, efficiency: 0.95 }, clothes_washers: { co2: 101, cost: 28, grid: 0.91, price: 0.15, efficiency: 4.5 } },
+                'TX': { name: 'Texas', classification: 'Gas/Coal/Wind Grid', ranking: 'ranks 30th out of 50 states for clean electricity',
+                    refrigerators: { co2: 265, cost: 42, grid: 0.94, price: 0.12, efficiency: 21.1 }, dishwashers: { co2: 217, cost: 28, grid: 0.94, price: 0.12, efficiency: 5.8 }, water_heaters: { co2: 2650, cost: 390, grid: 0.94, price: 0.12, efficiency: 0.95 }, clothes_washers: { co2: 105, cost: 23, grid: 0.94, price: 0.12, efficiency: 4.5 } },
+                
+                // DIRTY GRIDS (Coal/Gas Heavy)
+                'FL': { name: 'Florida', classification: 'Gas/Coal Grid', ranking: 'ranks 35th out of 50 states for clean electricity',
+                    refrigerators: { co2: 276, cost: 48, grid: 0.98, price: 0.12, efficiency: 21.1 }, dishwashers: { co2: 226, cost: 32, grid: 0.98, price: 0.12, efficiency: 5.8 }, water_heaters: { co2: 2760, cost: 445, grid: 0.98, price: 0.12, efficiency: 0.95 }, clothes_washers: { co2: 109, cost: 26, grid: 0.98, price: 0.12, efficiency: 4.5 } },
+                'GA': { name: 'Georgia', classification: 'Coal/Gas Grid', ranking: 'ranks 38th out of 50 states for clean electricity',
+                    refrigerators: { co2: 285, cost: 45, grid: 1.01, price: 0.13, efficiency: 21.1 }, dishwashers: { co2: 233, cost: 30, grid: 1.01, price: 0.13, efficiency: 5.8 }, water_heaters: { co2: 2850, cost: 425, grid: 1.01, price: 0.13, efficiency: 0.95 }, clothes_washers: { co2: 113, cost: 25, grid: 1.01, price: 0.13, efficiency: 4.5 } },
+                'OH': { name: 'Ohio', classification: 'Coal/Gas Grid', ranking: 'ranks 40th out of 50 states for clean electricity',
+                    refrigerators: { co2: 295, cost: 44, grid: 1.05, price: 0.13, efficiency: 21.1 }, dishwashers: { co2: 241, cost: 30, grid: 1.05, price: 0.13, efficiency: 5.8 }, water_heaters: { co2: 2950, cost: 415, grid: 1.05, price: 0.13, efficiency: 0.95 }, clothes_washers: { co2: 117, cost: 24, grid: 1.05, price: 0.13, efficiency: 4.5 } },
+                'IN': { name: 'Indiana', classification: 'Coal Heavy Grid', ranking: 'ranks 42nd out of 50 states for clean electricity',
+                    refrigerators: { co2: 305, cost: 42, grid: 1.08, price: 0.12, efficiency: 21.1 }, dishwashers: { co2: 250, cost: 28, grid: 1.08, price: 0.12, efficiency: 5.8 }, water_heaters: { co2: 3050, cost: 385, grid: 1.08, price: 0.12, efficiency: 0.95 }, clothes_washers: { co2: 121, cost: 23, grid: 1.08, price: 0.12, efficiency: 4.5 } },
+                'KY': { name: 'Kentucky', classification: 'Coal Heavy Grid', ranking: 'ranks 45th out of 50 states for clean electricity',
+                    refrigerators: { co2: 315, cost: 40, grid: 1.12, price: 0.11, efficiency: 21.1 }, dishwashers: { co2: 258, cost: 27, grid: 1.12, price: 0.11, efficiency: 5.8 }, water_heaters: { co2: 3150, cost: 365, grid: 1.12, price: 0.11, efficiency: 0.95 }, clothes_washers: { co2: 125, cost: 22, grid: 1.12, price: 0.11, efficiency: 4.5 } },
+                'WV': { name: 'West Virginia', classification: 'Coal Heavy Grid', ranking: 'ranks 48th out of 50 states for clean electricity',
+                    refrigerators: { co2: 325, cost: 38, grid: 1.15, price: 0.11, efficiency: 21.1 }, dishwashers: { co2: 266, cost: 26, grid: 1.15, price: 0.11, efficiency: 5.8 }, water_heaters: { co2: 3250, cost: 345, grid: 1.15, price: 0.11, efficiency: 0.95 }, clothes_washers: { co2: 129, cost: 21, grid: 1.15, price: 0.11, efficiency: 4.5 } },
+                'WY': { name: 'Wyoming', classification: 'Coal Heavy Grid', ranking: 'ranks 50th out of 50 states for clean electricity',
+                    refrigerators: { co2: 335, cost: 36, grid: 1.19, price: 0.10, efficiency: 21.1 }, dishwashers: { co2: 274, cost: 24, grid: 1.19, price: 0.10, efficiency: 5.8 }, water_heaters: { co2: 3350, cost: 325, grid: 1.19, price: 0.10, efficiency: 0.95 }, clothes_washers: { co2: 133, cost: 20, grid: 1.19, price: 0.10, efficiency: 4.5 } },
+                
+                // Add remaining states with appropriate mid-tier values
+                'MI': { name: 'Michigan', classification: 'Coal/Nuclear Grid', ranking: 'ranks 32nd out of 50 states for clean electricity',
+                    refrigerators: { co2: 268, cost: 46, grid: 0.95, price: 0.14, efficiency: 21.1 }, dishwashers: { co2: 219, cost: 31, grid: 0.95, price: 0.14, efficiency: 5.8 }, water_heaters: { co2: 2680, cost: 455, grid: 0.95, price: 0.14, efficiency: 0.95 }, clothes_washers: { co2: 106, cost: 26, grid: 0.95, price: 0.14, efficiency: 4.5 } },
+                'WI': { name: 'Wisconsin', classification: 'Coal/Nuclear Grid', ranking: 'ranks 33rd out of 50 states for clean electricity',
+                    refrigerators: { co2: 270, cost: 47, grid: 0.96, price: 0.14, efficiency: 21.1 }, dishwashers: { co2: 221, cost: 32, grid: 0.96, price: 0.14, efficiency: 5.8 }, water_heaters: { co2: 2700, cost: 465, grid: 0.96, price: 0.14, efficiency: 0.95 }, clothes_washers: { co2: 107, cost: 26, grid: 0.96, price: 0.14, efficiency: 4.5 } },
+                'MN': { name: 'Minnesota', classification: 'Coal/Nuclear Grid', ranking: 'ranks 22nd out of 50 states for clean electricity',
+                    refrigerators: { co2: 245, cost: 44, grid: 0.87, price: 0.13, efficiency: 21.1 }, dishwashers: { co2: 200, cost: 30, grid: 0.87, price: 0.13, efficiency: 5.8 }, water_heaters: { co2: 2450, cost: 425, grid: 0.87, price: 0.13, efficiency: 0.95 }, clothes_washers: { co2: 97, cost: 24, grid: 0.87, price: 0.13, efficiency: 4.5 } },
+                'IA': { name: 'Iowa', classification: 'Wind/Coal Grid', ranking: 'ranks 18th out of 50 states for clean electricity',
+                    refrigerators: { co2: 235, cost: 42, grid: 0.83, price: 0.12, efficiency: 21.1 }, dishwashers: { co2: 192, cost: 28, grid: 0.83, price: 0.12, efficiency: 5.8 }, water_heaters: { co2: 2350, cost: 395, grid: 0.83, price: 0.12, efficiency: 0.95 }, clothes_washers: { co2: 93, cost: 23, grid: 0.83, price: 0.12, efficiency: 4.5 } },
+                'MO': { name: 'Missouri', classification: 'Coal/Nuclear Grid', ranking: 'ranks 36th out of 50 states for clean electricity',
+                    refrigerators: { co2: 278, cost: 41, grid: 0.99, price: 0.12, efficiency: 21.1 }, dishwashers: { co2: 228, cost: 28, grid: 0.99, price: 0.12, efficiency: 5.8 }, water_heaters: { co2: 2780, cost: 385, grid: 0.99, price: 0.12, efficiency: 0.95 }, clothes_washers: { co2: 110, cost: 23, grid: 0.99, price: 0.12, efficiency: 4.5 } },
+                'AR': { name: 'Arkansas', classification: 'Coal/Gas Grid', ranking: 'ranks 39th out of 50 states for clean electricity',
+                    refrigerators: { co2: 288, cost: 40, grid: 1.02, price: 0.11, efficiency: 21.1 }, dishwashers: { co2: 236, cost: 27, grid: 1.02, price: 0.11, efficiency: 5.8 }, water_heaters: { co2: 2880, cost: 375, grid: 1.02, price: 0.11, efficiency: 0.95 }, clothes_washers: { co2: 114, cost: 22, grid: 1.02, price: 0.11, efficiency: 4.5 } },
+                'LA': { name: 'Louisiana', classification: 'Gas/Coal Grid', ranking: 'ranks 41st out of 50 states for clean electricity',
+                    refrigerators: { co2: 298, cost: 38, grid: 1.06, price: 0.11, efficiency: 21.1 }, dishwashers: { co2: 244, cost: 26, grid: 1.06, price: 0.11, efficiency: 5.8 }, water_heaters: { co2: 2980, cost: 355, grid: 1.06, price: 0.11, efficiency: 0.95 }, clothes_washers: { co2: 118, cost: 21, grid: 1.06, price: 0.11, efficiency: 4.5 } },
+                'MS': { name: 'Mississippi', classification: 'Gas/Coal Grid', ranking: 'ranks 43rd out of 50 states for clean electricity',
+                    refrigerators: { co2: 308, cost: 39, grid: 1.09, price: 0.11, efficiency: 21.1 }, dishwashers: { co2: 252, cost: 26, grid: 1.09, price: 0.11, efficiency: 5.8 }, water_heaters: { co2: 3080, cost: 365, grid: 1.09, price: 0.11, efficiency: 0.95 }, clothes_washers: { co2: 122, cost: 21, grid: 1.09, price: 0.11, efficiency: 4.5 } },
+                'AL': { name: 'Alabama', classification: 'Coal/Gas Grid', ranking: 'ranks 44th out of 50 states for clean electricity',
+                    refrigerators: { co2: 312, cost: 41, grid: 1.11, price: 0.12, efficiency: 21.1 }, dishwashers: { co2: 255, cost: 28, grid: 1.11, price: 0.12, efficiency: 5.8 }, water_heaters: { co2: 3120, cost: 385, grid: 1.11, price: 0.12, efficiency: 0.95 }, clothes_washers: { co2: 124, cost: 22, grid: 1.11, price: 0.12, efficiency: 4.5 } },
+                'TN': { name: 'Tennessee', classification: 'Nuclear/Coal Grid', ranking: 'ranks 24th out of 50 states for clean electricity',
+                    refrigerators: { co2: 248, cost: 40, grid: 0.88, price: 0.11, efficiency: 21.1 }, dishwashers: { co2: 203, cost: 27, grid: 0.88, price: 0.11, efficiency: 5.8 }, water_heaters: { co2: 2480, cost: 375, grid: 0.88, price: 0.11, efficiency: 0.95 }, clothes_washers: { co2: 98, cost: 22, grid: 0.88, price: 0.11, efficiency: 4.5 } },
+                'NC': { name: 'North Carolina', classification: 'Nuclear/Coal Grid', ranking: 'ranks 27th out of 50 states for clean electricity',
+                    refrigerators: { co2: 253, cost: 42, grid: 0.90, price: 0.12, efficiency: 21.1 }, dishwashers: { co2: 207, cost: 28, grid: 0.90, price: 0.12, efficiency: 5.8 }, water_heaters: { co2: 2530, cost: 395, grid: 0.90, price: 0.12, efficiency: 0.95 }, clothes_washers: { co2: 100, cost: 23, grid: 0.90, price: 0.12, efficiency: 4.5 } },
+                'SC': { name: 'South Carolina', classification: 'Nuclear/Coal Grid', ranking: 'ranks 21st out of 50 states for clean electricity',
+                    refrigerators: { co2: 242, cost: 43, grid: 0.86, price: 0.13, efficiency: 21.1 }, dishwashers: { co2: 198, cost: 29, grid: 0.86, price: 0.13, efficiency: 5.8 }, water_heaters: { co2: 2420, cost: 415, grid: 0.86, price: 0.13, efficiency: 0.95 }, clothes_washers: { co2: 96, cost: 24, grid: 0.86, price: 0.13, efficiency: 4.5 } },
+                'VA': { name: 'Virginia', classification: 'Nuclear/Coal Grid', ranking: 'ranks 29th out of 50 states for clean electricity',
+                    refrigerators: { co2: 258, cost: 44, grid: 0.92, price: 0.13, efficiency: 21.1 }, dishwashers: { co2: 211, cost: 30, grid: 0.92, price: 0.13, efficiency: 5.8 }, water_heaters: { co2: 2580, cost: 425, grid: 0.92, price: 0.13, efficiency: 0.95 }, clothes_washers: { co2: 102, cost: 25, grid: 0.92, price: 0.13, efficiency: 4.5 } },
+                'MD': { name: 'Maryland', classification: 'Nuclear/Gas Grid', ranking: 'ranks 23rd out of 50 states for clean electricity',
+                    refrigerators: { co2: 247, cost: 52, grid: 0.88, price: 0.15, efficiency: 21.1 }, dishwashers: { co2: 202, cost: 35, grid: 0.88, price: 0.15, efficiency: 5.8 }, water_heaters: { co2: 2470, cost: 495, grid: 0.88, price: 0.15, efficiency: 0.95 }, clothes_washers: { co2: 98, cost: 29, grid: 0.88, price: 0.15, efficiency: 4.5 } },
+                'DE': { name: 'Delaware', classification: 'Gas/Coal Grid', ranking: 'ranks 31st out of 50 states for clean electricity',
+                    refrigerators: { co2: 262, cost: 45, grid: 0.93, price: 0.13, efficiency: 21.1 }, dishwashers: { co2: 214, cost: 31, grid: 0.93, price: 0.13, efficiency: 5.8 }, water_heaters: { co2: 2620, cost: 435, grid: 0.93, price: 0.13, efficiency: 0.95 }, clothes_washers: { co2: 104, cost: 25, grid: 0.93, price: 0.13, efficiency: 4.5 } },
+                'CO': { name: 'Colorado', classification: 'Coal/Gas/Wind Grid', ranking: 'ranks 34th out of 50 states for clean electricity',
+                    refrigerators: { co2: 272, cost: 43, grid: 0.97, price: 0.12, efficiency: 21.1 }, dishwashers: { co2: 223, cost: 29, grid: 0.97, price: 0.12, efficiency: 5.8 }, water_heaters: { co2: 2720, cost: 405, grid: 0.97, price: 0.12, efficiency: 0.95 }, clothes_washers: { co2: 108, cost: 24, grid: 0.97, price: 0.12, efficiency: 4.5 } },
+                'UT': { name: 'Utah', classification: 'Coal/Gas Grid', ranking: 'ranks 46th out of 50 states for clean electricity',
+                    refrigerators: { co2: 318, cost: 39, grid: 1.13, price: 0.11, efficiency: 21.1 }, dishwashers: { co2: 260, cost: 26, grid: 1.13, price: 0.11, efficiency: 5.8 }, water_heaters: { co2: 3180, cost: 355, grid: 1.13, price: 0.11, efficiency: 0.95 }, clothes_washers: { co2: 126, cost: 21, grid: 1.13, price: 0.11, efficiency: 4.5 } },
+                'NM': { name: 'New Mexico', classification: 'Coal/Gas Grid', ranking: 'ranks 37th out of 50 states for clean electricity',
+                    refrigerators: { co2: 282, cost: 44, grid: 1.00, price: 0.13, efficiency: 21.1 }, dishwashers: { co2: 231, cost: 30, grid: 1.00, price: 0.13, efficiency: 5.8 }, water_heaters: { co2: 2820, cost: 425, grid: 1.00, price: 0.13, efficiency: 0.95 }, clothes_washers: { co2: 112, cost: 25, grid: 1.00, price: 0.13, efficiency: 4.5 } },
+                'KS': { name: 'Kansas', classification: 'Wind/Coal Grid', ranking: 'ranks 19th out of 50 states for clean electricity',
+                    refrigerators: { co2: 238, cost: 41, grid: 0.84, price: 0.12, efficiency: 21.1 }, dishwashers: { co2: 195, cost: 28, grid: 0.84, price: 0.12, efficiency: 5.8 }, water_heaters: { co2: 2380, cost: 395, grid: 0.84, price: 0.12, efficiency: 0.95 }, clothes_washers: { co2: 94, cost: 23, grid: 0.84, price: 0.12, efficiency: 4.5 } },
+                'OK': { name: 'Oklahoma', classification: 'Gas/Wind Grid', ranking: 'ranks 17th out of 50 states for clean electricity',
+                    refrigerators: { co2: 232, cost: 38, grid: 0.82, price: 0.11, efficiency: 21.1 }, dishwashers: { co2: 190, cost: 26, grid: 0.82, price: 0.11, efficiency: 5.8 }, water_heaters: { co2: 2320, cost: 375, grid: 0.82, price: 0.11, efficiency: 0.95 }, clothes_washers: { co2: 92, cost: 22, grid: 0.82, price: 0.11, efficiency: 4.5 } },
+                'NE': { name: 'Nebraska', classification: 'Coal/Nuclear Grid', ranking: 'ranks 33rd out of 50 states for clean electricity',
+                    refrigerators: { co2: 270, cost: 40, grid: 0.96, price: 0.11, efficiency: 21.1 }, dishwashers: { co2: 221, cost: 27, grid: 0.96, price: 0.11, efficiency: 5.8 }, water_heaters: { co2: 2700, cost: 375, grid: 0.96, price: 0.11, efficiency: 0.95 }, clothes_washers: { co2: 107, cost: 22, grid: 0.96, price: 0.11, efficiency: 4.5 } },
+                'SD': { name: 'South Dakota', classification: 'Hydro/Wind Grid', ranking: 'ranks 11th out of 50 states for clean electricity',
+                    refrigerators: { co2: 212, cost: 42, grid: 0.75, price: 0.12, efficiency: 21.1 }, dishwashers: { co2: 174, cost: 28, grid: 0.75, price: 0.12, efficiency: 5.8 }, water_heaters: { co2: 2120, cost: 395, grid: 0.75, price: 0.12, efficiency: 0.95 }, clothes_washers: { co2: 84, cost: 23, grid: 0.75, price: 0.12, efficiency: 4.5 } },
+                'ND': { name: 'North Dakota', classification: 'Coal/Wind Grid', ranking: 'ranks 47th out of 50 states for clean electricity',
+                    refrigerators: { co2: 322, cost: 37, grid: 1.14, price: 0.10, efficiency: 21.1 }, dishwashers: { co2: 263, cost: 25, grid: 1.14, price: 0.10, efficiency: 5.8 }, water_heaters: { co2: 3220, cost: 345, grid: 1.14, price: 0.10, efficiency: 0.95 }, clothes_washers: { co2: 128, cost: 20, grid: 1.14, price: 0.10, efficiency: 4.5 } },
+                'MT': { name: 'Montana', classification: 'Coal/Hydro Grid', ranking: 'ranks 14th out of 50 states for clean electricity',
+                    refrigerators: { co2: 222, cost: 39, grid: 0.79, price: 0.11, efficiency: 21.1 }, dishwashers: { co2: 182, cost: 26, grid: 0.79, price: 0.11, efficiency: 5.8 }, water_heaters: { co2: 2220, cost: 375, grid: 0.79, price: 0.11, efficiency: 0.95 }, clothes_washers: { co2: 88, cost: 22, grid: 0.79, price: 0.11, efficiency: 4.5 } },
+                'AK': { name: 'Alaska', classification: 'Gas/Diesel Grid', ranking: 'ranks 49th out of 50 states for clean electricity',
+                    refrigerators: { co2: 328, cost: 68, grid: 1.16, price: 0.20, efficiency: 21.1 }, dishwashers: { co2: 269, cost: 46, grid: 1.16, price: 0.20, efficiency: 5.8 }, water_heaters: { co2: 3280, cost: 685, grid: 1.16, price: 0.20, efficiency: 0.95 }, clothes_washers: { co2: 130, cost: 34, grid: 1.16, price: 0.20, efficiency: 4.5 } },
+                'HI': { name: 'Hawaii', classification: 'Oil/Solar Grid', ranking: 'ranks 13th out of 50 states for clean electricity',
+                    refrigerators: { co2: 218, cost: 95, grid: 0.77, price: 0.33, efficiency: 21.1 }, dishwashers: { co2: 178, cost: 64, grid: 0.77, price: 0.33, efficiency: 5.8 }, water_heaters: { co2: 2180, cost: 1045, grid: 0.77, price: 0.33, efficiency: 0.95 }, clothes_washers: { co2: 86, cost: 48, grid: 0.77, price: 0.33, efficiency: 4.5 } }
+            }
+        };
+
+        function initializeMap() {
+            // Check if Mapbox token is set
+            if (typeof mapboxgl === 'undefined' || !mapboxgl.accessToken || mapboxgl.accessToken === 'YOUR_ACTUAL_TOKEN_HERE') {
+                document.getElementById('map').innerHTML = `
+                    <div style="display: flex; align-items: center; justify-content: center; height: 100%; background: #f8fafc; color: #4a5568; text-align: center; padding: 40px;">
+                        <div>
+                            <h3 style="margin-bottom: 16px; color: #2d3748;">🗺️ Add Your Mapbox Token</h3>
+                            <p style="margin-bottom: 20px;">Get a free token at <a href="https://mapbox.com" target="_blank" style="color: #0066cc;">mapbox.com</a> and replace YOUR_ACTUAL_TOKEN_HERE</p>
+                            <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+                                <button onclick="selectRegion('CA')" style="padding: 8px 16px; background: #0066cc; color: white; border: none; border-radius: 6px; cursor: pointer;">California</button>
+                                <button onclick="selectRegion('TX')" style="padding: 8px 16px; background: #0066cc; color: white; border: none; border-radius: 6px; cursor: pointer;">Texas</button>
+                                <button onclick="selectRegion('NY')" style="padding: 8px 16px; background: #0066cc; color: white; border: none; border-radius: 6px; cursor: pointer;">New York</button>
+                                <button onclick="selectRegion('WA')" style="padding: 8px 16px; background: #0066cc; color: white; border: none; border-radius: 6px; cursor: pointer;">Washington</button>
+                                <button onclick="selectRegion('US')" style="padding: 8px 16px; background: #718096; color: white; border: none; border-radius: 6px; cursor: pointer;">US Average</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
+            // Initialize real Mapbox map
+            map = new mapboxgl.Map({
+                container: 'map',
+                style: 'mapbox://styles/mapbox/light-v11',
+                center: [-98.5, 39.8],
+                zoom: 3.5
+            });
+
+            map.on('load', function() {
+                // Add US states data source
+                map.addSource('states', {
+                    'type': 'geojson',
+                    'data': 'https://raw.githubusercontent.com/PublicaMundi/MappingAPI/master/data/geojson/us-states.json'
+                });
+
+                // Add state fill layer
+                map.addLayer({
+                    'id': 'state-fills',
+                    'type': 'fill',
+                    'source': 'states',
+                    'layout': {},
+                    'paint': {
+                        'fill-color': [
+                            'case',
+                            // CLEANEST GRIDS (0.50-0.54 lbs/kWh) - Excellent #10b981
+                            ['in', ['get', 'name'], ['literal', ['Washington', 'Oregon', 'Vermont', 'Idaho']]], '#10b981',
+                            
+                            // CLEAN GRIDS (0.64-0.75 lbs/kWh) - Very Good #48bb78  
+                            ['in', ['get', 'name'], ['literal', ['California', 'New Hampshire', 'Connecticut', 'New York', 'Rhode Island', 'Massachusetts', 'South Dakota', 'Hawaii']]], '#48bb78',
+                            
+                            // MID-TIER GRIDS (0.79-0.96 lbs/kWh) - Good #eab308
+                            ['in', ['get', 'name'], ['literal', ['Montana', 'Nevada', 'Maine', 'Arizona', 'Iowa', 'Oklahoma', 'Kansas', 'Tennessee', 'South Carolina', 'Maryland', 'Minnesota', 'Wisconsin', 'Michigan', 'Nebraska', 'Colorado']]], '#eab308',
+                            
+                            // DIRTY GRIDS (0.99-1.11 lbs/kWh) - Fair #f97316
+                            ['in', ['get', 'name'], ['literal', ['Pennsylvania', 'Illinois', 'New Jersey', 'Texas', 'Delaware', 'Virginia', 'North Carolina', 'Florida', 'Georgia', 'Missouri', 'New Mexico', 'Arkansas', 'Louisiana', 'Alabama']]], '#f97316',
+                            
+                            // DIRTIEST GRIDS (1.08-1.19 lbs/kWh) - Poor #ef4444
+                            ['in', ['get', 'name'], ['literal', ['Ohio', 'Indiana', 'Kentucky', 'Mississippi', 'West Virginia', 'Utah', 'North Dakota', 'Alaska', 'Wyoming']]], '#ef4444',
+                            
+                            // Default color for any unmatched states
+                            '#e2e8f0'
+                        ],
+                        'fill-opacity': 0.7
+                    }
+                });
+
+                // Add state border layer
+                map.addLayer({
+                    'id': 'state-borders',
+                    'type': 'line',
+                    'source': 'states',
+                    'layout': {},
+                    'paint': {
+                        'line-color': '#ffffff',
+                        'line-width': 2
+                    }
+                });
+
+                // Add click handler for any part of the map
+                map.on('click', function(e) {
+                    const features = map.queryRenderedFeatures(e.point, {
+                        layers: ['state-fills']
+                    });
+                    
+                    if (features.length > 0) {
+                        const props = features[0].properties;
+                        console.log('All properties:', props); // Debug all properties
+                        
+                        // Try different possible property names
+                        const stateName = props.NAME || props.name || props.NAME_1 || props.STATE_NAME || props.state;
+                        console.log('Clicked state:', stateName);
+                        
+                        const stateCode = getStateCode(stateName);
+                        console.log('State code:', stateCode);
+                        
+                        if (stateCode) {
+                            selectRegion(stateCode);
+                        }
+                    }
+                });
+
+                // Change cursor on hover
+                map.on('mouseenter', 'state-fills', function() {
+                    map.getCanvas().style.cursor = 'pointer';
+                });
+
+                map.on('mouseleave', 'state-fills', function() {
+                    map.getCanvas().style.cursor = '';
+                });
+            });
+        }
+
+        function getStateCode(stateName) {
+            const stateMap = {
+                'California': 'CA',
+                'Texas': 'TX', 
+                'New York': 'NY',
+                'Washington': 'WA',
+                'Florida': 'FL',
+                'Illinois': 'IL',
+                'Pennsylvania': 'PA',
+                'Ohio': 'OH',
+                'Georgia': 'GA',
+                'North Carolina': 'NC',
+                'Michigan': 'MI',
+                'New Jersey': 'NJ',
+                'Virginia': 'VA',
+                'Tennessee': 'TN',
+                'Indiana': 'IN',
+                'Arizona': 'AZ',
+                'Massachusetts': 'MA',
+                'Maryland': 'MD',
+                'Missouri': 'MO',
+                'Wisconsin': 'WI',
+                'Colorado': 'CO',
+                'Minnesota': 'MN',
+                'Louisiana': 'LA',
+                'Alabama': 'AL',
+                'Kentucky': 'KY',
+                'Oregon': 'OR',
+                'Oklahoma': 'OK',
+                'Connecticut': 'CT',
+                'Utah': 'UT',
+                'Iowa': 'IA',
+                'Nevada': 'NV',
+                'Arkansas': 'AR',
+                'Mississippi': 'MS',
+                'Kansas': 'KS',
+                'New Mexico': 'NM',
+                'Nebraska': 'NE',
+                'West Virginia': 'WV',
+                'Idaho': 'ID',
+                'Hawaii': 'HI',
+                'New Hampshire': 'NH',
+                'Maine': 'ME',
+                'Montana': 'MT',
+                'Rhode Island': 'RI',
+                'Delaware': 'DE',
+                'South Dakota': 'SD',
+                'North Dakota': 'ND',
+                'Alaska': 'AK',
+                'Vermont': 'VT',
+                'Wyoming': 'WY'
+            };
+            console.log('Looking up state:', stateName, 'Found:', stateMap[stateName]); // Debug
+            return stateMap[stateName] || 'US'; // Default to US if state not found
+        }
+
+        function changeComparisonBaseline() {
+            const select = document.getElementById('comparison-baseline');
+            comparisonBaseline = select.value;
+            
+            // Update the breakdown data with new baseline
+            if (currentRegion) {
+                const categoryData = regionalData.states[currentRegion][currentCategory];
+                const baselineData = regionalData.states[comparisonBaseline][currentCategory];
+                updateBreakdownData(categoryData, baselineData);
+            }
+        }
+
+        function selectRegion(regionCode) {
+            const regionData = regionalData.states[regionCode];
+            if (!regionData) return;
+
+            // Update current region for comparison table
+            currentRegion = regionCode;
+
+            // Update region info
+            document.getElementById('region-name').textContent = regionData.name;
+            document.getElementById('region-classification').textContent = regionData.classification;
+            
+            const categoryData = regionData[currentCategory];
+            const baselineData = regionalData.states[comparisonBaseline][currentCategory];
+            
+            // Update score and ranking
+            document.getElementById('region-score').textContent = categoryData.co2;
+            document.getElementById('region-ranking').textContent = 
+                regionData.ranking || `CO₂ lbs/year for ${currentCategory.replace('_', ' ')}`;
+
+            // Update breakdown data
+            updateBreakdownData(categoryData, baselineData);
+        }
+
+        function updateBreakdownData(selected, baseline) {
+            // Update the regional header
+            const regionName = regionalData.states[currentRegion]?.name || 'This Region';
+            document.getElementById('selected-region-header').textContent = regionName;
+            
+            // CO2 Emissions (lower is better)
+            document.getElementById('co2-selected').textContent = `${selected.co2} lbs`;
+            document.getElementById('co2-national').textContent = `${baseline.co2} lbs`;
+            const co2Diff = selected.co2 - baseline.co2;
+            const co2DiffEl = document.getElementById('co2-diff');
+            if (co2Diff === 0) {
+                co2DiffEl.textContent = '—';
+                co2DiffEl.className = 'metric-value-cell difference neutral';
+            } else {
+                const co2DiffPct = Math.round((co2Diff / baseline.co2) * 100);
+                co2DiffEl.textContent = `${co2DiffPct > 0 ? '+' : ''}${co2DiffPct}%`;
+                co2DiffEl.className = `metric-value-cell difference ${co2Diff < 0 ? 'better' : 'worse'}`;
+            }
+            
+            // Operating Cost (lower is better)
+            document.getElementById('cost-selected').textContent = `$${selected.cost}`;
+            document.getElementById('cost-national').textContent = `$${baseline.cost}`;
+            const costDiff = selected.cost - baseline.cost;
+            const costDiffEl = document.getElementById('cost-diff');
+            if (costDiff === 0) {
+                costDiffEl.textContent = '—';
+                costDiffEl.className = 'metric-value-cell difference neutral';
+            } else {
+                const costDiffPct = Math.round((costDiff / baseline.cost) * 100);
+                costDiffEl.textContent = `${costDiff > 0 ? '+' : ''}$${Math.abs(costDiff)}`;
+                costDiffEl.className = `metric-value-cell difference ${costDiff < 0 ? 'better' : 'worse'}`;
+            }
+            
+            // Grid Carbon Intensity (lower is better)
+            document.getElementById('grid-selected').textContent = `${selected.grid} lbs/kWh`;
+            document.getElementById('grid-national').textContent = `${baseline.grid} lbs/kWh`;
+            const gridDiff = selected.grid - baseline.grid;
+            const gridDiffEl = document.getElementById('grid-diff');
+            if (gridDiff === 0) {
+                gridDiffEl.textContent = '—';
+                gridDiffEl.className = 'metric-value-cell difference neutral';
+            } else {
+                const gridDiffPct = Math.round((gridDiff / baseline.grid) * 100);
+                gridDiffEl.textContent = `${gridDiffPct > 0 ? '+' : ''}${gridDiffPct}%`;
+                gridDiffEl.className = `metric-value-cell difference ${gridDiff < 0 ? 'better' : 'worse'}`;
+            }
+            
+            // Electricity Price (lower is better for consumers)
+            document.getElementById('price-selected').textContent = `$${selected.price.toFixed(2)}/kWh`;
+            document.getElementById('price-national').textContent = `$${baseline.price.toFixed(2)}/kWh`;
+            const priceDiff = selected.price - baseline.price;
+            const priceDiffEl = document.getElementById('price-diff');
+            if (Math.abs(priceDiff) < 0.005) {
+                priceDiffEl.textContent = '—';
+                priceDiffEl.className = 'metric-value-cell difference neutral';
+            } else {
+                const priceDiffPct = Math.round((priceDiff / baseline.price) * 100);
+                priceDiffEl.textContent = `${priceDiff > 0 ? '+' : ''}${priceDiffPct}%`;
+                priceDiffEl.className = `metric-value-cell difference ${priceDiff < 0 ? 'better' : 'worse'}`;
+            }
+            
+            // Efficiency Rating (same for all regions, so neutral)
+            document.getElementById('efficiency-selected').textContent = `${selected.efficiency} ${getEfficiencyUnit()}`;
+            document.getElementById('efficiency-national').textContent = `${baseline.efficiency} ${getEfficiencyUnit()}`;
+            const efficiencyDiffEl = document.getElementById('efficiency-diff');
+            efficiencyDiffEl.textContent = '—';
+            efficiencyDiffEl.className = 'metric-value-cell difference neutral';
+        }
+
+        function getEfficiencyUnit() {
+            switch(currentCategory) {
+                case 'refrigerators': return 'ft³/kWh';
+                case 'dishwashers': return 'cycles/kWh';
+                case 'water_heaters': return 'UEF';
+                case 'clothes_washers': return 'ft³/kWh';
+                default: return '';
+            }
+        }
+
+        function selectCategory(category) {
+            currentCategory = category;
+            
+            // Update active tab
+            document.querySelectorAll('.category-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // Update data for current region using current baseline
+            selectRegion(currentRegion || 'US');
+        }
+
+        function changeGeography(geo) {
+            currentGeography = geo;
+            
+            // Update active tab
+            document.querySelectorAll('.geo-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // In real implementation, would reload map data
+            console.log(`Switched to ${geo} geography`);
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeMap();
+            selectRegion('US');
+        });
+    </script>
+</body>
+</html>

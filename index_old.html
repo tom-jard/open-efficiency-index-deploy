@@ -1,0 +1,979 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Open Efficiency Index - Smart Appliance Ratings</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .header h1 {
+            font-size: 3.5rem;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 16px;
+            text-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .header p {
+            font-size: 1.3rem;
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 20px;
+        }
+
+        .alert {
+            background: linear-gradient(45deg, #ff6b6b, #ff8e53);
+            color: white;
+            padding: 16px 24px;
+            border-radius: 12px;
+            font-weight: 600;
+            box-shadow: 0 8px 32px rgba(255, 107, 107, 0.3);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+
+        /* Search Section */
+        .search-section {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .search-section h2 {
+            font-size: 2rem;
+            color: #2d3748;
+            margin-bottom: 30px;
+            font-weight: 700;
+        }
+
+        .search-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 24px;
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            color: #4a5568;
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .form-group select,
+        .form-group input {
+            padding: 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: white;
+            outline: none;
+        }
+
+        .form-group select:focus,
+        .form-group input:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .search-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 18px 36px;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3);
+        }
+
+        .search-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 40px rgba(102, 126, 234, 0.4);
+        }
+
+        .search-btn:active {
+            transform: translateY(-1px);
+        }
+
+        /* Loading Animation */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #e2e8f0;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Results Section */
+        .results-section {
+            display: none;
+        }
+
+        .results-header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.05);
+        }
+
+        .results-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px;
+            margin-bottom: 25px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+            padding: 20px;
+            border-radius: 16px;
+            text-align: center;
+            border: 2px solid #e2e8f0;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: #667eea;
+            display: block;
+        }
+
+        .stat-label {
+            color: #4a5568;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 0.9rem;
+        }
+
+        /* Appliance Cards */
+        .appliances-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 24px;
+            margin-top: 30px;
+        }
+
+        .appliance-card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .appliance-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .appliance-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 32px 80px rgba(0, 0, 0, 0.12);
+            border-color: #667eea;
+        }
+
+        .appliance-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 20px;
+        }
+
+        .appliance-brand {
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: #2d3748;
+        }
+
+        .appliance-model {
+            color: #718096;
+            font-weight: 500;
+            margin-top: 4px;
+        }
+
+        .efficiency-score {
+            color: white;
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-weight: 800;
+            font-size: 1.2rem;
+            text-align: center;
+            min-width: 80px;
+        }
+
+        /* Color-coded efficiency score ranges */
+        .efficiency-score.excellent {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%); /* Emerald - 90-100 */
+        }
+
+        .efficiency-score.very-good {
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%); /* Green - 80-89 */
+        }
+
+        .efficiency-score.good {
+            background: linear-gradient(135deg, #eab308 0%, #ca8a04 100%); /* Yellow - 70-79 */
+        }
+
+        .efficiency-score.fair {
+            background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); /* Orange - 60-69 */
+        }
+
+        .efficiency-score.poor {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); /* Red - Below 60 */
+        }
+
+        .appliance-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 16px;
+            margin-top: 20px;
+        }
+
+        .detail-item {
+            text-align: center;
+            padding: 16px;
+            background: #f7fafc;
+            border-radius: 12px;
+        }
+
+        .detail-value {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #2d3748;
+        }
+
+        .detail-label {
+            font-size: 0.85rem;
+            color: #718096;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 4px;
+        }
+
+        .energy-star-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #3182ce 0%, #2c5aa0 100%);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 16px;
+        }
+
+        /* Chart Container */
+        .chart-container {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.05);
+            height: 300px; /* Fixed height to prevent overflow */
+        }
+
+        .chart-container h3 {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        #efficiencyChart {
+            max-height: 220px !important;
+        }
+
+        /* Methodology Section */
+        .methodology {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 40px;
+            margin-top: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.05);
+        }
+
+        .methodology h2 {
+            font-size: 2rem;
+            color: #2d3748;
+            margin-bottom: 30px;
+            font-weight: 700;
+            text-align: center;
+        }
+
+        .methodology-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+        }
+
+        .methodology-item {
+            text-align: center;
+            padding: 30px 20px;
+            background: rgba(102, 126, 234, 0.05);
+            border-radius: 16px;
+            border: 2px solid rgba(102, 126, 234, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .methodology-item:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 30px rgba(102, 126, 234, 0.1);
+        }
+
+        .methodology-icon {
+            font-size: 3rem;
+            margin-bottom: 16px;
+            display: block;
+        }
+
+        .methodology-item h3 {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 12px;
+        }
+
+        .methodology-item p {
+            color: #4a5568;
+            line-height: 1.6;
+        }
+
+        .libutton {
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          padding: 7px;
+          text-align: center;
+          outline: none;
+          text-decoration: none !important;
+          color: #ffffff !important;
+          width: 200px;
+          height: 32px;
+          border-radius: 16px;
+          background-color: #0A66C2;
+          font-family: "SF Pro Text", Helvetica, sans-serif;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                padding: 16px;
+            }
+
+            .header h1 {
+                font-size: 2.5rem;
+            }
+
+            .header p {
+                font-size: 1.1rem;
+            }
+
+            .search-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .appliances-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .methodology-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #718096;
+        }
+
+        .empty-state h3 {
+            font-size: 1.5rem;
+            margin-bottom: 12px;
+            color: #4a5568;
+        }
+
+        /* Compare Mode */
+        .compare-toggle {
+            margin-bottom: 20px;
+        }
+
+        .compare-btn {
+            background: linear-gradient(135deg, #38a169 0%, #2f855a 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-right: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .compare-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .compare-selected {
+            border: 3px solid #38a169 !important;
+            box-shadow: 0 0 20px rgba(56, 161, 105, 0.3) !important;
+        }
+
+        .comparison-panel {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.05);
+            display: none;
+        }
+
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <h1>Open Efficiency Index</h1>
+            <p>Transparent, Regional-Aware Appliance Efficiency Ratings</p>
+            <div class="alert">
+                ⚠️ EPA planning to defund ENERGY STAR in FY2026 - This open-source alternative ensures continued access to efficiency data
+            </div>
+            
+            <!-- Navigation -->
+            <div style="margin-top: 20px; display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;">
+                <a href="#search" style="background: rgba(255,255,255,0.2); padding: 12px 24px; border-radius: 8px; color: white; text-decoration: none; font-weight: 600; backdrop-filter: blur(10px);">
+                    🔍 Search Appliances
+                </a>
+                <a class="libutton" href="https://www.linkedin.com/comm/mynetwork/discovery-see-all?usecase=PEOPLE_FOLLOWS&followMember=thomasjardinejr" target="_blank">Follow on LinkedIn</a>
+            </div>
+        </header>
+
+        <!-- Search Section -->
+        <section class="search-section" id="search">
+            <h2>Find Efficient Appliances</h2>
+            <div class="search-grid">
+                <div class="form-group">
+                    <label for="category">Appliance Category</label>
+                    <select id="category">
+                        <option value="">Select Category</option>
+                        <option value="refrigerators">Refrigerators</option>
+                        <option value="dishwashers">Dishwashers</option>
+                        <option value="water_heaters">Water Heaters</option>
+                        <option value="clothes_washers">Clothes Washers</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="manufacturer">Manufacturer (Optional)</label>
+                    <input type="text" id="manufacturer" placeholder="e.g., Whirlpool, GE, Samsung">
+                </div>
+                
+                <div class="form-group">
+                    <label for="min-score">Minimum Efficiency Score</label>
+                    <input type="number" id="min-score" value="0" min="0" max="100">
+                </div>
+                
+                <div class="form-group">
+                    <label for="energy-star">ENERGY STAR Only</label>
+                    <select id="energy-star">
+                        <option value="false">All Models</option>
+                        <option value="true">ENERGY STAR Only</option>
+                    </select>
+                </div>
+            </div>
+            
+            <button class="search-btn" onclick="searchAppliances()">
+                🔍 Search Appliances
+            </button>
+        </section>
+
+        <!-- Loading Animation -->
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Searching for the most efficient appliances...</p>
+        </div>
+
+        <!-- Results Section -->
+        <section class="results-section" id="results-section">
+            <div class="results-header">
+                <div class="results-stats" id="results-stats">
+                    <!-- Stats will be populated by JavaScript -->
+                </div>
+                
+                <!-- Chart Container -->
+                <div class="chart-container">
+                    <h3>Efficiency Score Distribution</h3>
+                    <canvas id="efficiencyChart" width="400" height="180"></canvas>
+                </div>
+            </div>
+
+            <!-- Compare Toggle -->
+            <div class="compare-toggle">
+                <button class="compare-btn" onclick="toggleCompareMode()">Compare Mode</button>
+                <button class="compare-btn" onclick="compareSelected()" id="compare-selected-btn" style="display: none;">Compare Selected</button>
+                <button class="compare-btn" onclick="clearComparison()" id="clear-compare-btn" style="display: none;">Clear</button>
+            </div>
+
+            <!-- Comparison Panel -->
+            <div class="comparison-panel" id="comparison-panel">
+                <h3>Appliance Comparison</h3>
+                <div class="comparison-grid" id="comparison-grid">
+                    <!-- Comparison cards will be populated by JavaScript -->
+                </div>
+            </div>
+            
+            <div class="appliances-grid" id="appliances-grid">
+                <!-- Appliance cards will be populated by JavaScript -->
+            </div>
+        </section>
+
+        <!-- Methodology Section -->
+        <section class="methodology">
+            <h2>Our Methodology</h2>
+            <div class="methodology-grid">
+                <div class="methodology-item">
+                    <span class="methodology-icon">🎯</span>
+                    <h3>Comprehensive Scoring</h3>
+                    <p>Open Efficiency Score combines energy usage, cost savings, and carbon impact for a complete picture of appliance performance.</p>
+                </div>
+                
+                <div class="methodology-item">
+                    <span class="methodology-icon">🌍</span>
+                    <h3>Regional Awareness</h3>
+                    <p>Unlike ENERGY STAR's one-size-fits-all approach, we factor in regional electricity pricing and grid carbon intensity.</p>
+                </div>
+                
+                <div class="methodology-item">
+                    <span class="methodology-icon">📊</span>
+                    <h3>Transparent Data</h3>
+                    <p>All data sourced from DOE Compliance Certification Database, EPA emissions factors, and EIA regional pricing data.</p>
+                </div>
+                
+                <div class="methodology-item">
+                    <span class="methodology-icon">🔍</span>
+                    <h3>Hidden Impacts</h3>
+                    <p>We reveal efficiency differences hidden by ENERGY STAR certifications, like ice maker energy penalties.</p>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        let chart;
+        let compareMode = false;
+        let selectedAppliances = [];
+        
+        function getEfficiencyClass(score) {
+            if (score >= 90) return 'excellent';
+            if (score >= 80) return 'very-good';
+            if (score >= 70) return 'good';
+            if (score >= 60) return 'fair';
+            return 'poor';
+        }
+        
+        async function searchAppliances() {
+            const category = document.getElementById('category').value;
+            const manufacturer = document.getElementById('manufacturer').value;
+            const minScore = document.getElementById('min-score').value;
+            const energyStar = document.getElementById('energy-star').value;
+            
+            if (!category) {
+                alert('Please select an appliance category');
+                return;
+            }
+            
+            // Show loading
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('results-section').style.display = 'none';
+            
+            try {
+                // Build query parameters
+                let params = new URLSearchParams({
+                    category: category,
+                    min_score: minScore,
+                    energy_star: energyStar,
+                    limit: 50
+                });
+                
+                if (manufacturer) {
+                    params.append('manufacturer', manufacturer);
+                }
+                
+                // Fetch data from API
+                const response = await fetch(`/api/search?${params}`);
+                const data = await response.json();
+                
+                // Hide loading
+                document.getElementById('loading').style.display = 'none';
+                
+                if (data.appliances && data.appliances.length > 0) {
+                    displayResults(data);
+                } else {
+                    displayEmptyState(category);
+                }
+                
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                document.getElementById('loading').style.display = 'none';
+                alert('Error searching appliances. Please make sure the API server is running.');
+            }
+        }
+        
+        function displayResults(data) {
+            // Show results section
+            document.getElementById('results-section').style.display = 'block';
+            
+            // Update stats
+            const statsContainer = document.getElementById('results-stats');
+            const appliances = data.appliances;
+            
+            const avgScore = (appliances.reduce((sum, app) => sum + app.open_efficiency_score, 0) / appliances.length).toFixed(1);
+            const avgCost = (appliances.reduce((sum, app) => sum + app.annual_cost_us_average, 0) / appliances.length).toFixed(0);
+            const energyStarCount = appliances.filter(app => app.energy_star_certified === 1).length;
+            const energyStarPercent = ((energyStarCount / appliances.length) * 100).toFixed(0);
+            
+            statsContainer.innerHTML = `
+                <div class="stat-card">
+                    <span class="stat-number">${appliances.length}</span>
+                    <span class="stat-label">Models Found</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-number">${avgScore}</span>
+                    <span class="stat-label">Avg Efficiency Score</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-number">$${avgCost}</span>
+                    <span class="stat-label">Avg Annual Cost</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-number">${energyStarPercent}%</span>
+                    <span class="stat-label">ENERGY STAR</span>
+                </div>
+            `;
+            
+            // Update chart
+            updateChart(appliances);
+            
+            // Update appliance cards
+            const grid = document.getElementById('appliances-grid');
+            grid.innerHTML = appliances.map(appliance => createApplianceCard(appliance)).join('');
+        }
+        
+        function createApplianceCard(appliance) {
+            const energyStarBadge = appliance.energy_star_certified === 1 ? 
+                '<div class="energy-star-badge">⭐ ENERGY STAR Certified</div>' : '';
+            
+            const cardId = `card-${appliance.manufacturer.replace(/\s/g, '')}-${appliance.model_number}`;
+            const efficiencyClass = getEfficiencyClass(appliance.open_efficiency_score);
+            
+            return `
+                <div class="appliance-card" id="${cardId}" onclick="handleCardClick('${cardId}', ${JSON.stringify(appliance).replace(/"/g, '&quot;')})">
+                    <div class="appliance-header">
+                        <div>
+                            <div class="appliance-brand">${appliance.manufacturer}</div>
+                            <div class="appliance-model">${appliance.model_number}</div>
+                        </div>
+                        <div class="efficiency-score ${efficiencyClass}">${appliance.open_efficiency_score}</div>
+                    </div>
+                    
+                    <div class="appliance-details">
+                        <div class="detail-item">
+                            <div class="detail-value">$${Math.round(appliance.annual_cost_us_average)}</div>
+                            <div class="detail-label">Annual Cost</div>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <div class="detail-value">${appliance.efficiency_rating}</div>
+                            <div class="detail-label">Efficiency Rating</div>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <div class="detail-value">${Math.round(appliance.annual_co2_lbs_us_average || 0)}</div>
+                            <div class="detail-label">Annual CO₂ (lbs)</div>
+                        </div>
+                    </div>
+                    
+                    ${energyStarBadge}
+                </div>
+            `;
+        }
+        
+        function handleCardClick(cardId, appliance) {
+            if (compareMode) {
+                const card = document.getElementById(cardId);
+                if (card.classList.contains('compare-selected')) {
+                    card.classList.remove('compare-selected');
+                    selectedAppliances = selectedAppliances.filter(a => a.model_number !== appliance.model_number);
+                } else {
+                    if (selectedAppliances.length < 3) {
+                        card.classList.add('compare-selected');
+                        selectedAppliances.push(appliance);
+                    } else {
+                        alert('You can compare up to 3 appliances at once');
+                    }
+                }
+                
+                updateCompareButtons();
+            }
+        }
+        
+        function toggleCompareMode() {
+            compareMode = !compareMode;
+            const button = event.target;
+            button.textContent = compareMode ? 'Exit Compare' : 'Compare Mode';
+            
+            if (!compareMode) {
+                clearComparison();
+            }
+        }
+        
+        function updateCompareButtons() {
+            const compareBtn = document.getElementById('compare-selected-btn');
+            const clearBtn = document.getElementById('clear-compare-btn');
+            
+            if (selectedAppliances.length > 1) {
+                compareBtn.style.display = 'inline-block';
+                clearBtn.style.display = 'inline-block';
+            } else {
+                compareBtn.style.display = 'none';
+                clearBtn.style.display = selectedAppliances.length > 0 ? 'inline-block' : 'none';
+            }
+        }
+        
+        function compareSelected() {
+            const panel = document.getElementById('comparison-panel');
+            const grid = document.getElementById('comparison-grid');
+            
+            grid.innerHTML = selectedAppliances.map(appliance => {
+                const efficiencyClass = getEfficiencyClass(appliance.open_efficiency_score);
+                return `
+                <div class="appliance-card">
+                    <div class="appliance-header">
+                        <div>
+                            <div class="appliance-brand">${appliance.manufacturer}</div>
+                            <div class="appliance-model">${appliance.model_number}</div>
+                        </div>
+                        <div class="efficiency-score ${efficiencyClass}">${appliance.open_efficiency_score}</div>
+                    </div>
+                    
+                    <div class="appliance-details">
+                        <div class="detail-item">
+                            <div class="detail-value">$${Math.round(appliance.annual_cost_us_average)}</div>
+                            <div class="detail-label">Annual Cost</div>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <div class="detail-value">${appliance.efficiency_rating}</div>
+                            <div class="detail-label">Efficiency Rating</div>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <div class="detail-value">${Math.round(appliance.annual_co2_lbs_us_average || 0)}</div>
+                            <div class="detail-label">Annual CO₂ (lbs)</div>
+                        </div>
+                    </div>
+                    
+                    ${appliance.energy_star_certified === 1 ? '<div class="energy-star-badge">⭐ ENERGY STAR Certified</div>' : ''}
+                </div>
+            `}).join('');
+            
+            panel.style.display = 'block';
+        }
+        
+        function clearComparison() {
+            selectedAppliances = [];
+            document.querySelectorAll('.compare-selected').forEach(card => {
+                card.classList.remove('compare-selected');
+            });
+            document.getElementById('comparison-panel').style.display = 'none';
+            updateCompareButtons();
+        }
+        
+        function updateChart(appliances) {
+            const ctx = document.getElementById('efficiencyChart').getContext('2d');
+            
+            // Create score bins
+            const bins = [0, 20, 40, 60, 80, 90, 95, 100];
+            const binCounts = new Array(bins.length - 1).fill(0);
+            const binLabels = ['0-20', '20-40', '40-60', '60-80', '80-90', '90-95', '95-100'];
+            
+            appliances.forEach(app => {
+                const score = app.open_efficiency_score;
+                for (let i = 0; i < bins.length - 1; i++) {
+                    if (score >= bins[i] && score < bins[i + 1]) {
+                        binCounts[i]++;
+                        break;
+                    }
+                    if (score === 100 && i === bins.length - 2) {
+                        binCounts[i]++;
+                        break;
+                    }
+                }
+            });
+            
+            if (chart) {
+                chart.destroy();
+            }
+            
+            chart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: binLabels,
+                    datasets: [{
+                        label: 'Number of Models',
+                        data: binCounts,
+                        backgroundColor: 'rgba(102, 126, 234, 0.8)',
+                        borderColor: 'rgba(102, 126, 234, 1)',
+                        borderWidth: 2,
+                        borderRadius: 8,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Efficiency Score Range',
+                                font: {
+                                    size: 12
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        function displayEmptyState(category) {
+            document.getElementById('results-section').style.display = 'block';
+            document.getElementById('results-stats').innerHTML = '';
+            
+            const grid = document.getElementById('appliances-grid');
+            grid.innerHTML = `
+                <div class="empty-state">
+                    <h3>No appliances found</h3>
+                    <p>Try adjusting your search criteria for ${category}</p>
+                </div>
+            `;
+        }
+        
+        // Enable search on Enter key
+        document.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                searchAppliances();
+            }
+        });
+        
+        // Auto-search when category changes
+        document.getElementById('category').addEventListener('change', function() {
+            if (this.value) {
+                searchAppliances();
+            }
+        });
+    </script>
+</body>
+</html>
