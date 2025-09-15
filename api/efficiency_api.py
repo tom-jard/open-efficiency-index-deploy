@@ -15,10 +15,13 @@ from pathlib import Path
 import json
 import logging
 from typing import Dict, List, Optional
-from dotenv import load_dotenv
 
-# Load environment variables
-load_dotenv()
+# Load environment variables (skip dotenv for serverless)
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass  # Skip if dotenv not available in serverless
 
 # Configure logging
 logging.basicConfig(
@@ -42,14 +45,25 @@ if not DB_PATH.exists():
     DB_PATH = Path(__file__).parent.parent / "scripts" / "data" / "open_efficiency_index.db"
     logger.warning(f"Using fallback database path: {DB_PATH}")
 
+# Additional fallback for serverless (relative to api/)
+if not DB_PATH.exists():
+    DB_PATH = Path(__file__).parent.parent / "scripts" / "open_efficiency_index.db"
+    logger.warning(f"Using serverless fallback database path: {DB_PATH}")
+
 if not DB_PATH.exists():
     logger.error(f"Database not found at {DB_PATH}")
-    raise FileNotFoundError(f"Database not found at {DB_PATH}")
+    # In serverless, just log error but don't fail completely
+    DB_PATH = None
 
-logger.info(f"Using database: {DB_PATH}")
+if DB_PATH:
+    logger.info(f"Using database: {DB_PATH}")
+else:
+    logger.error("No database available - API will return errors")
 
 def get_db_connection():
     """Get database connection with error handling."""
+    if not DB_PATH:
+        raise FileNotFoundError("Database not available in serverless environment")
     try:
         conn = sqlite3.connect(DB_PATH)
         conn.row_factory = sqlite3.Row
