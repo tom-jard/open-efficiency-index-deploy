@@ -198,8 +198,8 @@
         }
         
         /* Energy Star column styling */
-        .results-table th:nth-child(4),
-        .results-table td:nth-child(4) {
+        .results-table th:nth-child(5),
+        .results-table td:nth-child(5) {
             text-align: center;
             width: 80px;
         }
@@ -367,6 +367,7 @@
                             <th>Brand & Model</th>
                             <th>Category</th>
                             <th>Efficiency Score</th>
+                            <th>Rating</th>
                             <th>ENERGY STAR</th>
                             <th>Annual Cost</th>
                             <th>CO₂ Impact</th>
@@ -461,7 +462,7 @@
             if (currentData.length === 0) {
                 tbody.innerHTML = `
                     <tr>
-                        <td colspan="6" style="text-align: center; padding: var(--space-16); color: var(--color-gray-500);">
+                        <td colspan="8" style="text-align: center; padding: var(--space-16); color: var(--color-gray-500);">
                             No appliances found matching your criteria
                         </td>
                     </tr>
@@ -477,6 +478,7 @@
                     </td>
                     <td>${formatCategory(data.category || appliance.category)}</td>
                     <td><span class="efficiency-score">${Math.round(appliance.open_efficiency_score || 0)}</span></td>
+                    <td><strong style="color: var(--color-accent);">${appliance.efficiency_rating || '—'}</strong></td>
                     <td>
                         ${appliance.energy_star_certified ? 
                             '<img src="../energy-star-logo.webp" alt="ENERGY STAR Certified" style="height: 24px; width: auto;" title="ENERGY STAR Certified">' : 
