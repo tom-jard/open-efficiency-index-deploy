@@ -3,39 +3,268 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Open Efficiency Index - Uncompromising regional appliance efficiency ratings beyond ENERGY STAR">
-    <meta name="keywords" content="appliance efficiency, energy policy, regional carbon impact, utility rates">
-    <meta name="author" content="Open Efficiency Index">
+    <meta name="description" content="Open Efficiency Index Database - Search 400+ appliances by regional efficiency ratings">
     
-    <!-- Open Graph / Facebook -->
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="https://open-efficiency-index.com/">
-    <meta property="og:title" content="Open Efficiency Index - Beyond ENERGY STAR">
-    <meta property="og:description" content="Regional-aware efficiency ratings that ENERGY STAR can't deliver. 400+ appliances scored by true carbon impact.">
-    
-    <!-- Twitter -->
-    <meta property="twitter:card" content="summary_large_image">
-    <meta property="twitter:url" content="https://open-efficiency-index.com/">
-    <meta property="twitter:title" content="Open Efficiency Index - Beyond ENERGY STAR">
-    <meta property="twitter:description" content="Regional-aware efficiency ratings that ENERGY STAR can't deliver. 400+ appliances scored by true carbon impact.">
-    
-    <title>Open Efficiency Index - Beyond ENERGY STAR</title>
+    <title>Database - Open Efficiency Index</title>
     
     <!-- Preload critical fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     
-    <!-- Critical CSS -->
-    <style>
-        :root{--font-display:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;--font-mono:'JetBrains Mono',Consolas,'Liberation Mono',monospace;--text-xs:0.75rem;--text-sm:0.875rem;--text-base:1rem;--text-lg:1.125rem;--text-xl:1.25rem;--text-2xl:1.5rem;--text-3xl:1.875rem;--text-4xl:2.25rem;--text-5xl:3rem;--text-6xl:3.75rem;--text-7xl:4.5rem;--color-black:#000;--color-white:#fff;--color-gray-50:#f9fafb;--color-gray-100:#f3f4f6;--color-gray-200:#e5e7eb;--color-gray-300:#d1d5db;--color-gray-400:#9ca3af;--color-gray-500:#6b7280;--color-gray-600:#4b5563;--color-gray-700:#374151;--color-gray-800:#1f2937;--color-gray-900:#111827;--space-1:0.25rem;--space-2:0.5rem;--space-3:0.75rem;--space-4:1rem;--space-6:1.5rem;--space-8:2rem;--space-12:3rem;--space-16:4rem;--space-20:5rem;--space-24:6rem;--space-32:8rem;--radius-sm:0.125rem;--radius:0.25rem;--radius-lg:0.5rem;--shadow-sm:0 1px 2px 0 rgb(0 0 0 / 0.05);--shadow:0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);--transition:all 150ms cubic-bezier(0.4, 0, 0.2, 1)}*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}html{scroll-behavior:smooth;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}body{font-family:var(--font-display);font-size:var(--text-base);line-height:1.5;color:var(--color-gray-900);background:var(--color-white);min-height:100vh;overflow-x:hidden}@media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}*,*::before,*::after{animation-duration:0.01ms !important;animation-iteration-count:1 !important;transition-duration:0.01ms !important}}
-    </style>
+    <!-- Chart.js for visualizations -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
-    <!-- Main stylesheet -->
+    <!-- Import editorial design system from landing -->
     <link rel="stylesheet" href="../landing/styles.css">
+    
+    <style>
+        /* ===================================
+           DATABASE-SPECIFIC STYLES
+           =================================== */
+        
+        .main-content {
+            padding-top: calc(80px + var(--space-6));
+            min-height: 100vh;
+            background: var(--color-white);
+        }
+        
+        .database-header {
+            text-align: center;
+            margin-bottom: var(--space-6);
+            padding: var(--space-4) var(--space-6);
+        }
+        
+        .database-title {
+            font-size: var(--text-3xl);
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            color: var(--color-black);
+            margin-bottom: var(--space-1);
+        }
+        
+        .database-subtitle {
+            font-size: var(--text-base);
+            color: var(--color-gray-600);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        /* Search Section - Horizontal Layout */
+        .search-section {
+            max-width: 1200px;
+            margin: 0 auto var(--space-8);
+            padding: 0 var(--space-6);
+        }
+        
+        .search-card {
+            background: var(--color-gray-50);
+            border: 1px solid var(--color-gray-200);
+            border-radius: var(--radius);
+            padding: var(--space-4);
+            box-shadow: none;
+        }
+        
+        .search-title {
+            font-size: var(--text-lg);
+            font-weight: 600;
+            color: var(--color-black);
+            margin-bottom: var(--space-3);
+        }
+        
+        .search-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr auto;
+            gap: var(--space-4);
+            align-items: end;
+            margin-bottom: 0;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .form-group label {
+            font-weight: 500;
+            color: var(--color-gray-700);
+            margin-bottom: var(--space-1);
+            font-size: var(--text-xs);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .form-control {
+            padding: var(--space-2) var(--space-3);
+            border: 1px solid var(--color-gray-300);
+            border-radius: var(--radius);
+            font-size: var(--text-sm);
+            font-family: var(--font-display);
+            transition: var(--transition);
+            height: 40px;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: var(--color-accent);
+            box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1);
+        }
+        
+        .search-button {
+            background: var(--color-black);
+            color: var(--color-white);
+            border: none;
+            padding: var(--space-2) var(--space-6);
+            border-radius: var(--radius);
+            font-weight: 600;
+            font-size: var(--text-sm);
+            cursor: pointer;
+            transition: var(--transition);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            height: 40px;
+            white-space: nowrap;
+        }
+        
+        .search-button:hover {
+            background: var(--color-gray-800);
+            transform: translateY(-1px);
+        }
+        
+        /* Results Section */
+        .results-section {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 var(--space-6) var(--space-8);
+        }
+        
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--space-4);
+            padding-bottom: var(--space-2);
+            border-bottom: 1px solid var(--color-gray-200);
+        }
+        
+        .results-count {
+            font-family: var(--font-mono);
+            font-size: var(--text-lg);
+            font-weight: 600;
+            color: var(--color-accent);
+        }
+        
+        .view-toggle {
+            display: flex;
+            background: var(--color-gray-100);
+            border-radius: var(--radius);
+            padding: var(--space-1);
+        }
+        
+        .view-btn {
+            padding: var(--space-2) var(--space-4);
+            border: none;
+            background: transparent;
+            font-weight: 500;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        
+        .view-btn.active {
+            background: var(--color-white);
+            box-shadow: var(--shadow-sm);
+        }
+        
+        /* Table View */
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--color-white);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+        }
+        
+        .results-table th {
+            background: var(--color-gray-50);
+            padding: var(--space-2) var(--space-3);
+            text-align: left;
+            font-weight: 600;
+            color: var(--color-gray-700);
+            font-size: var(--text-xs);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .results-table td {
+            padding: var(--space-2) var(--space-3);
+            border-top: 1px solid var(--color-gray-100);
+            font-size: var(--text-sm);
+            vertical-align: top;
+        }
+        
+        .results-table tr:hover {
+            background: var(--color-gray-50);
+        }
+        
+        .efficiency-score {
+            font-family: var(--font-mono);
+            font-weight: 600;
+            color: var(--color-accent);
+        }
+        
+        /* Chart Container */
+        .chart-container {
+            background: var(--color-white);
+            border: 1px solid var(--color-gray-200);
+            border-radius: var(--radius-lg);
+            padding: var(--space-4);
+            margin-bottom: var(--space-4);
+            box-shadow: var(--shadow);
+        }
+        
+        /* Loading and Error States */
+        .loading {
+            text-align: center;
+            padding: var(--space-8);
+            color: var(--color-gray-500);
+        }
+        
+        .error {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            color: #dc2626;
+            padding: var(--space-3);
+            border-radius: var(--radius);
+            margin-bottom: var(--space-4);
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .search-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .results-header {
+                flex-direction: column;
+                gap: var(--space-2);
+                align-items: stretch;
+            }
+            
+            .results-table {
+                font-size: var(--text-xs);
+            }
+            
+            .results-table th,
+            .results-table td {
+                padding: var(--space-1) var(--space-2);
+            }
+        }
+    </style>
 </head>
 <body>
-    <!-- Header -->
+    <!-- Header - Consistent with Landing Page -->
     <header class="header">
         <nav class="nav">
             <div class="nav-brand">
@@ -44,183 +273,362 @@
             </div>
             
             <div class="nav-actions">
-                <a href="#methodology" class="nav-link">Methodology</a>
-                <a href="#api" class="nav-link">API</a>
-                <a href="index.html" class="btn-primary">
-                    Database →
-                </a>
-                <a href="regional-efficiency-map.html" class="btn-primary" style="margin-left: var(--space-3);">
-                    Regional Map →
+                <a href="../index.html" class="nav-link">← Back</a>
+                <a href="regional-efficiency-map.html" class="nav-link">Regional Map</a>
+                <a href="../index.html#api" class="btn-primary">
+                    API Docs →
                 </a>
             </div>
         </nav>
     </header>
 
-    <!-- Hero Section -->
-    <main class="hero">
-        <div class="hero-container">
-            <!-- Hero Badge -->
-            <div class="hero-badge">
-                <span class="badge-text">Policy Alert</span>
-                <span class="badge-separator">—</span>
-                <span class="badge-detail">EPA defunding ENERGY STAR — Open alternative ready</span>
-            </div>
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Database Header -->
+        <section class="database-header">
+            <h1 class="database-title">Appliance Database</h1>
+            <p class="database-subtitle">
+                Search and compare 400+ appliances with regional efficiency ratings beyond ENERGY STAR
+            </p>
+        </section>
 
-            <!-- Hero Typography -->
-            <div class="hero-typography">
-                <h1 class="hero-headline">
-                    <span class="headline-primary">Beyond</span>
-                    <span class="headline-emphasis">ENERGY STAR</span>
-                </h1>
+        <!-- Search Section -->
+        <section class="search-section">
+            <div class="search-card">
+                <h2 class="search-title">Find Appliances</h2>
                 
-                <div class="hero-subtext">
-                    <p class="subtext-primary">Uncompromising regional appliance efficiency ratings</p>
-                    <p class="subtext-secondary">400+ appliances scored by true carbon impact</p>
+                <div class="search-grid">
+                    <div class="form-group">
+                        <label for="category">Appliance Category</label>
+                        <select id="category" class="form-control">
+                            <option value="">All Categories</option>
+                            <option value="refrigerators">Refrigerators</option>
+                            <option value="dishwashers">Dishwashers</option>
+                            <option value="clothes_washers">Clothes Washers</option>
+                            <option value="water_heaters">Water Heaters</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="brand">Brand</label>
+                        <input type="text" id="brand" class="form-control" placeholder="e.g. Samsung, LG, Whirlpool">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="efficiency">Min Efficiency Score</label>
+                        <input type="number" id="efficiency" class="form-control" placeholder="0-100" min="0" max="100">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>&nbsp;</label>
+                        <button class="search-button" onclick="searchAppliances()">
+                            Search Database
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Results Section -->
+        <section class="results-section">
+            <div class="results-header">
+                <div class="results-count" id="resultsCount">
+                    Select a category above to search appliances
+                </div>
+                
+                <div class="view-toggle">
+                    <button class="view-btn active" onclick="switchView('table')">Table</button>
+                    <button class="view-btn" onclick="switchView('chart')">Chart</button>
                 </div>
             </div>
 
-            <!-- Hero Stats Grid -->
-            <div class="hero-stats">
-                <div class="stat-item">
-                    <div class="stat-number" data-count="2847">2,847</div>
-                    <div class="stat-label">lbs CO₂ saved today</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-number" data-count="400">400</div>
-                    <div class="stat-label">appliances rated</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-number" data-count="50">50</div>
-                    <div class="stat-label">states analyzed</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-number">21%</div>
-                    <div class="stat-label">efficiency improvement</div>
-                </div>
+            <!-- Loading State -->
+            <div id="loading" class="loading" style="display: none;">
+                <div>Searching database...</div>
             </div>
 
-            <!-- Hero Actions -->
-            <div class="hero-actions">
-                <a href="index.html" class="cta-primary">
-                    <span class="cta-text">Explore Database</span>
-                    <span class="cta-arrow">→</span>
-                </a>
-                <a href="regional-efficiency-map.html" class="cta-primary" style="margin-left: var(--space-4); background: var(--color-accent);">
-                    <span class="cta-text">Regional Map</span>
-                    <span class="cta-arrow">→</span>
-                </a>
-                <a href="#methodology" class="cta-secondary">
-                    Read Methodology
-                </a>
+            <!-- Error State -->
+            <div id="error" class="error" style="display: none;">
+                <strong>Error:</strong> <span id="errorMessage"></span>
             </div>
-        </div>
+
+            <!-- Table View -->
+            <div id="tableView" class="table-view">
+                <table class="results-table">
+                    <thead>
+                        <tr>
+                            <th>Brand & Model</th>
+                            <th>Category</th>
+                            <th>Efficiency Score</th>
+                            <th>Annual Cost</th>
+                            <th>CO₂ Impact</th>
+                            <th>Energy Use</th>
+                        </tr>
+                    </thead>
+                    <tbody id="resultsTableBody">
+                        <!-- Results will be populated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Chart View -->
+            <div id="chartView" class="chart-view" style="display: none;">
+                <div class="chart-container">
+                    <canvas id="efficiencyChart" width="400" height="200"></canvas>
+                </div>
+            </div>
+        </section>
     </main>
 
-    <!-- Data Sources -->
-    <section class="sources">
-        <div class="sources-container">
-            <div class="sources-grid">
-                <div class="source-item">DOE Compliance Database</div>
-                <div class="source-item">EPA Emissions Factors</div>
-                <div class="source-item">EIA Regional Pricing</div>
-            </div>
-        </div>
-    </section>
+    <!-- JavaScript for Database Functionality -->
+    <script>
+        const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+            ? 'http://localhost:8080' 
+            : '/api';
 
-    <!-- Methodology -->
-    <section class="methodology" id="methodology">
-        <div class="methodology-container">
-            <div class="methodology-header">
-                <h2 class="section-title">Transparent Methodology</h2>
-                <p class="section-subtitle">Open scoring that reveals what ENERGY STAR hides</p>
-            </div>
+        let currentData = [];
+        let chart = null;
 
-            <div class="methodology-grid">
-                <div class="method-item">
-                    <div class="method-number">01</div>
-                    <div class="method-content">
-                        <h3 class="method-title">DOE Compliance Integration</h3>
-                        <p class="method-description">Direct integration with Department of Energy certification database. No marketing claims, only regulatory compliance data.</p>
-                    </div>
-                </div>
+        async function searchAppliances() {
+            const category = document.getElementById('category').value;
+            const brand = document.getElementById('brand').value;
+            const efficiency = document.getElementById('efficiency').value;
 
-                <div class="method-item">
-                    <div class="method-number">02</div>
-                    <div class="method-content">
-                        <h3 class="method-title">Regional Grid Reality</h3>
-                        <p class="method-description">EPA emissions factors by region. A fridge in Wyoming creates 2.4x more CO₂ than the same fridge in Washington.</p>
-                    </div>
-                </div>
+            // Require category selection
+            if (!category) {
+                showError('Please select an appliance category first');
+                return;
+            }
 
-                <div class="method-item">
-                    <div class="method-number">03</div>
-                    <div class="method-content">
-                        <h3 class="method-title">Composite Scoring</h3>
-                        <p class="method-description">40% efficiency, 30% annual cost, 30% carbon emissions. Weighted for real-world impact, not marketing convenience.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
+            // Show loading
+            showLoading(true);
+            hideError();
 
-    <!-- API -->
-    <section class="api" id="api">
-        <div class="api-container">
-            <div class="api-header">
-                <h2 class="section-title">Developer API</h2>
-                <p class="section-subtitle">RESTful access to complete efficiency database</p>
-            </div>
-
-            <div class="api-demo">
-                <div class="demo-endpoints">
-                    <div class="endpoint-item">
-                        <span class="endpoint-method">GET</span>
-                        <span class="endpoint-path">/api/stats</span>
-                    </div>
-                    <div class="endpoint-item">
-                        <span class="endpoint-method">GET</span>
-                        <span class="endpoint-path">/api/search?category=refrigerators</span>
-                    </div>
-                    <div class="endpoint-item">
-                        <span class="endpoint-method">GET</span>
-                        <span class="endpoint-path">/api/compare?model=A&model=B</span>
-                    </div>
-                </div>
+            try {
+                let url = `${API_BASE_URL}/search?`;
+                const params = [];
                 
-                <button class="api-try-btn" data-api-demo>
-                    <span class="btn-text">Try Live Request</span>
-                    <span class="btn-indicator">→</span>
-                </button>
+                params.push(`category=${category}`);
+                if (brand) params.push(`brand=${encodeURIComponent(brand)}`);
+                if (efficiency) params.push(`min_efficiency=${efficiency}`);
+                params.push('limit=50');
                 
-                <div class="api-result" id="api-result">
-                    <!-- API response will appear here -->
-                </div>
-            </div>
-        </div>
-    </section>
+                url += params.join('&');
 
-    <!-- Footer -->
-    <footer class="footer">
-        <div class="footer-container">
-            <div class="footer-brand">
-                <div class="brand-mark">●</div>
-                <div class="brand-text">Open Efficiency Index</div>
-            </div>
+                const response = await fetch(url);
+                
+                if (!response.ok) {
+                    throw new Error(`API Error: ${response.status}`);
+                }
+
+                const data = await response.json();
+                currentData = data.appliances || [];
+                
+                updateResultsCount(currentData.length);
+                displayResults(data);
+                
+            } catch (error) {
+                console.error('Search error:', error);
+                showError(`Failed to search appliances: ${error.message}`);
+                updateResultsCount(0);
+                clearResults();
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        function displayResults(data = null) {
+            const activeView = document.querySelector('.view-btn.active').textContent.toLowerCase();
             
-            <div class="footer-links">
-                <a href="https://www.linkedin.com/comm/mynetwork/discovery-see-all?usecase=PEOPLE_FOLLOWS&followMember=thomasjardinejr" 
-                   target="_blank" 
-                   rel="noopener noreferrer" 
-                   class="footer-link">
-                    Follow on LinkedIn
-                </a>
-                <a href="#methodology" class="footer-link">Methodology</a>
-                <a href="#api" class="footer-link">API</a>
-            </div>
-        </div>
-    </footer>
+            if (activeView === 'table') {
+                displayTableResults(data);
+            } else {
+                displayChartResults(data);
+            }
+        }
 
-    <!-- Scripts -->
-    <script src="landing/app.js"></script>
+        function displayTableResults(data = null) {
+            const tbody = document.getElementById('resultsTableBody');
+            
+            if (currentData.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" style="text-align: center; padding: var(--space-16); color: var(--color-gray-500);">
+                            No appliances found matching your criteria
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = currentData.map(appliance => `
+                <tr>
+                    <td>
+                        <strong>${appliance.manufacturer || 'Unknown'}</strong><br>
+                        <small style="color: var(--color-gray-500);">${appliance.model_number || appliance.model || 'No model'}</small>
+                    </td>
+                    <td>${formatCategory(data.category || appliance.category)}</td>
+                    <td><span class="efficiency-score">${Math.round(appliance.open_efficiency_score || 0)}</span></td>
+                    <td>$${Math.round(appliance.annual_cost_us_average || 0)}/yr</td>
+                    <td>${Math.round(appliance.annual_co2_lbs_us_average || 0)} lbs/yr</td>
+                    <td>${Math.round(appliance.annual_energy_kwh || 0)} kWh/yr</td>
+                </tr>
+            `).join('');
+        }
+
+        function displayChartResults(data = null) {
+            if (currentData.length === 0) return;
+
+            const ctx = document.getElementById('efficiencyChart').getContext('2d');
+            
+            // Destroy existing chart
+            if (chart) {
+                chart.destroy();
+            }
+
+            // Create efficiency score distribution (histogram)
+            const bins = {
+                '0-20': 0,
+                '21-40': 0,
+                '41-60': 0,
+                '61-80': 0,
+                '81-100': 0
+            };
+
+            currentData.forEach(appliance => {
+                const score = appliance.open_efficiency_score || 0;
+                if (score <= 20) bins['0-20']++;
+                else if (score <= 40) bins['21-40']++;
+                else if (score <= 60) bins['41-60']++;
+                else if (score <= 80) bins['61-80']++;
+                else bins['81-100']++;
+            });
+
+            const labels = Object.keys(bins);
+            const counts = Object.values(bins);
+
+            // Get category name for title
+            const category = data?.category || document.getElementById('category').value || 'appliances';
+            const categoryName = formatCategory(category);
+
+            chart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Number of Appliances',
+                        data: counts,
+                        backgroundColor: 'rgba(0, 102, 204, 0.8)',
+                        borderColor: 'rgba(0, 102, 204, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: `Efficiency Score Distribution - ${categoryName}`,
+                            font: {
+                                size: 16,
+                                weight: 'bold'
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Number of Appliances'
+                            },
+                            ticks: {
+                                stepSize: 1
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Efficiency Score Range'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function switchView(view) {
+            // Update button states
+            document.querySelectorAll('.view-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            // Show/hide views
+            const tableView = document.getElementById('tableView');
+            const chartView = document.getElementById('chartView');
+
+            if (view === 'table') {
+                tableView.style.display = 'block';
+                chartView.style.display = 'none';
+            } else {
+                tableView.style.display = 'none';
+                chartView.style.display = 'block';
+                displayChartResults();
+            }
+        }
+
+        function formatCategory(category) {
+            const categoryMap = {
+                'refrigerators': 'Refrigerators',
+                'dishwashers': 'Dishwashers',
+                'clothes_washers': 'Clothes Washers',
+                'water_heaters': 'Water Heaters'
+            };
+            return categoryMap[category] || category;
+        }
+
+        function updateResultsCount(count) {
+            const element = document.getElementById('resultsCount');
+            if (count === 0) {
+                element.textContent = 'No results found';
+            } else {
+                element.textContent = `Found ${count} appliances`;
+            }
+        }
+
+        function showLoading(show) {
+            document.getElementById('loading').style.display = show ? 'block' : 'none';
+        }
+
+        function showError(message) {
+            document.getElementById('errorMessage').textContent = message;
+            document.getElementById('error').style.display = 'block';
+        }
+
+        function hideError() {
+            document.getElementById('error').style.display = 'none';
+        }
+
+        function clearResults() {
+            currentData = [];
+            const tbody = document.getElementById('resultsTableBody');
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="6" style="text-align: center; padding: var(--space-16); color: var(--color-gray-500);">
+                        Select a category above to search appliances
+                    </td>
+                </tr>
+            `;
+        }
+
+        // Load some initial data on page load
+        window.addEventListener('load', () => {
+            // Clear any existing results and show initial state
+            clearResults();
+            updateResultsCount(0);
+            document.getElementById('resultsCount').textContent = 'Select a category above to search appliances';
+        });
+    </script>
 </body>
 </html>
