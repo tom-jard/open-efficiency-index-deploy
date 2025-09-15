@@ -17,7 +17,7 @@ Unlike ENERGY STAR's binary qualified/not-qualified ratings, the Open Efficiency
 🎯 **Honest Performance Ratings** - Based on actual appliance performance (ft³/kWh, place settings/kWh)  
 🗺️ **Regional Awareness** - Shows how location affects your costs and environmental impact  
 📊 **Transparent Methodology** - All algorithms and data sources are open source  
-🔍 **Graduated Scoring** - 0-100 percentile ranking with realistic distribution  
+🔍 **Graduated Scoring** - 0-100 scoring with realistic clustering (FIXED from fake sequential scoring)  
 
 ### **Example: Same Samsung Refrigerator, Different States**
 - **Efficiency Score**: 93% (A+ rating) - **SAME everywhere**
