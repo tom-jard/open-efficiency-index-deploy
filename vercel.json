@@ -2,7 +2,7 @@
   "version": 2,
   "builds": [
     {
-      "src": "api/efficiency_api.py",
+      "src": "api/index.py",
       "use": "@vercel/python"
     },
     {
@@ -29,7 +29,7 @@
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "/api/efficiency_api.py"
+      "dest": "/api/index.py"
     },
     {
       "src": "/web/(.*)",
