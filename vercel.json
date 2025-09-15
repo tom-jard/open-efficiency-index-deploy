@@ -4,6 +4,14 @@
     {
       "src": "api/efficiency_api.py",
       "use": "@vercel/python"
+    },
+    {
+      "src": "web/**",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "landing/**",
+      "use": "@vercel/static"
     }
   ],
   "routes": [
@@ -12,20 +20,8 @@
       "dest": "/api/efficiency_api.py"
     },
     {
-      "src": "/web/(.*)",
-      "dest": "/web/$1"
-    },
-    {
-      "src": "/landing/(.*)",
-      "dest": "/landing/$1"
-    },
-    {
-      "src": "/data/(.*)",
-      "dest": "/data/$1"
-    },
-    {
-      "src": "/",
-      "dest": "/index.html"
+      "src": "/(.*)",
+      "dest": "/$1"
     }
   ]
 }
