@@ -4,12 +4,44 @@
     {
       "src": "api/efficiency_api.py",
       "use": "@vercel/python"
+    },
+    {
+      "src": "**/*.html",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "**/*.css",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "**/*.js",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "**/*.png",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "**/*.jpg",
+      "use": "@vercel/static"
     }
   ],
   "routes": [
     {
       "src": "/api/(.*)",
       "dest": "/api/efficiency_api.py"
+    },
+    {
+      "src": "/web/(.*)",
+      "dest": "/web/$1"
+    },
+    {
+      "src": "/landing/(.*)",
+      "dest": "/landing/$1"
+    },
+    {
+      "src": "/",
+      "dest": "/index.html"
     }
   ]
 }
