@@ -1,9 +1,11 @@
 {
-  "functions": {
-    "api/efficiency_api.py": {
-      "runtime": "python3.12"
+  "version": 2,
+  "builds": [
+    {
+      "src": "api/efficiency_api.py",
+      "use": "@vercel/python"
     }
-  },
+  ],
   "routes": [
     {
       "src": "/api/(.*)",
