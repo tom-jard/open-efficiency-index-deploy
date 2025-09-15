@@ -1,0 +1,12 @@
+{
+  "database_stats": {
+    "total_models": 400,
+    "categories": 4
+  },
+  "by_category": {
+    "refrigerators": 100,
+    "dishwashers": 100,
+    "clothes_washers": 100,
+    "water_heaters": 100
+  }
+}

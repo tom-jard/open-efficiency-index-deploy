@@ -1,11 +1,12 @@
-const { list, head } = require('@vercel/blob');
+const fs = require('fs');
+const path = require('path');
 
-// Cache for blob data to avoid repeated fetches
+// Cache for JSON data to avoid repeated file reads
 const cache = new Map();
 const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
-async function fetchFromBlob(path) {
-    const cacheKey = path;
+function loadJsonFile(filename) {
+    const cacheKey = filename;
     const cached = cache.get(cacheKey);
     
     if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
@@ -13,12 +14,9 @@ async function fetchFromBlob(path) {
     }
     
     try {
-        const response = await fetch(`https://blob.vercel-storage.com/appliances/${path}`);
-        if (!response.ok) {
-            throw new Error(`Failed to fetch ${path}: ${response.status}`);
-        }
-        
-        const data = await response.json();
+        const filePath = path.join(__dirname, 'data', filename);
+        const fileContent = fs.readFileSync(filePath, 'utf8');
+        const data = JSON.parse(fileContent);
         
         // Cache the result
         cache.set(cacheKey, {
@@ -28,13 +26,13 @@ async function fetchFromBlob(path) {
         
         return data;
     } catch (error) {
-        console.error(`Error fetching ${path}:`, error);
-        throw error;
+        console.error(`Error loading ${filename}:`, error);
+        throw new Error(`Failed to load ${filename}: ${error.message}`);
     }
 }
 
-// API route handlers
-export default async function handler(req, res) {
+// API route handler
+module.exports = async (req, res) => {
     // Set CORS headers
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
@@ -57,9 +55,9 @@ export default async function handler(req, res) {
             return res.json({
                 status: 'OK',
                 service: 'Open Efficiency Index API',
-                message: 'Powered by Vercel Blob Storage',
+                message: 'Static JSON API ready',
                 endpoints: {
-                    '/search': 'Search appliances',
+                    '/search': 'Search appliances by category',
                     '/stats': 'Database statistics'
                 }
             });
@@ -67,7 +65,7 @@ export default async function handler(req, res) {
         
         if (path === 'stats') {
             // Stats endpoint
-            const stats = await fetchFromBlob('stats.json');
+            const stats = loadJsonFile('stats.json');
             return res.json(stats);
         }
         
@@ -79,8 +77,8 @@ export default async function handler(req, res) {
                 return res.status(400).json({ error: 'Category is required' });
             }
             
-            // Fetch category data from blob
-            const appliances = await fetchFromBlob(`${category}.json`);
+            // Load category data from JSON file
+            const appliances = loadJsonFile(`${category}.json`);
             
             if (!appliances || !Array.isArray(appliances)) {
                 return res.status(404).json({ error: `Category ${category} not found` });
@@ -128,4 +126,4 @@ export default async function handler(req, res) {
             message: error.message
         });
     }
-}
+};
