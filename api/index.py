@@ -3,11 +3,36 @@
 Open Efficiency Index - Serverless API Index
 ============================================
 Main API endpoint for Vercel serverless deployment.
-Imports the main Flask app from efficiency_api.py
 """
 
-from efficiency_api import app
+from flask import Flask, jsonify
+import os
 
-# Export the Flask app for Vercel
-# Vercel will automatically handle WSGI
+# Create a simple test app first
+app = Flask(__name__)
+
+@app.route('/')
+def root():
+    return jsonify({
+        "status": "OK",
+        "service": "Open Efficiency Index API",
+        "version": "1.0.0",
+        "message": "API is running in serverless mode"
+    })
+
+@app.route('/test')
+def test():
+    return jsonify({"test": "working"})
+
+# Try to import main app if available
+try:
+    from efficiency_api import app as main_app
+    # Register routes from main app
+    app.register_blueprint(main_app, url_prefix='/main')
+except Exception as e:
+    @app.route('/error')
+    def error():
+        return jsonify({"error": f"Failed to load main app: {str(e)}"})
+
+# Export for Vercel
 handler = app
