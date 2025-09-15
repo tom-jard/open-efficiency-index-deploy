@@ -1,0 +1,26 @@
+{
+  "name": "open-efficiency-index-deploy",
+  "version": "1.0.0",
+  "description": "**A transparent, regionally-aware alternative to ENERGY STAR appliance ratings**",
+  "main": "upload_to_blob.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tom-jard/open-efficiency-index-deploy.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/tom-jard/open-efficiency-index-deploy/issues"
+  },
+  "homepage": "https://github.com/tom-jard/open-efficiency-index-deploy#readme",
+  "dependencies": {
+    "@vercel/blob": "^1.1.1",
+    "dotenv": "^17.2.2",
+    "sqlite3": "^5.1.7"
+  }
+}
