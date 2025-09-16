@@ -14,17 +14,18 @@
 
 Unlike ENERGY STAR's binary qualified/not-qualified ratings, the Open Efficiency Index provides:
 
-🎯 **Honest Performance Ratings** - Based on actual appliance performance (ft³/kWh, place settings/kWh)  
+🎯 **Real Government Data** - Built on **5,807 authentic ENERGY STAR certified appliances** from official APIs  
+🏭 **Authentic Manufacturers** - Real brands like GE Profile, Samsung, LG, Whirlpool with actual model numbers  
 🗺️ **Regional Awareness** - Shows how location affects your costs and environmental impact  
 📊 **Transparent Methodology** - All algorithms and data sources are open source  
-🔍 **Graduated Scoring** - 0-100 scoring with realistic clustering (FIXED from fake sequential scoring)  
+🔍 **True Performance Metrics** - Based on actual government test procedures and specifications  
 
-### **Example: Same Samsung Refrigerator, Different States**
-- **Efficiency Score**: 93% (A+ rating) - **SAME everywhere**
-- **California**: $73/year, 136 lbs CO₂ (clean grid, high cost)  
-- **Texas**: $39/year, 288 lbs CO₂ (dirty grid, low cost)
+### **Example: Real GE Profile Clothes Washer (PFQ83HSSW***)**
+- **Efficiency Score**: Based on real IMEF (Integrated Modified Energy Factor) from ENERGY STAR testing
+- **California**: Higher electricity cost, lower carbon impact (clean grid)  
+- **Texas**: Lower electricity cost, higher carbon impact (fossil fuel grid)
 
-*The appliance doesn't become "more efficient" in different states - only cost and environmental impact change.*
+*Real appliance efficiency from government certification database - not synthetic or estimated data.*
 
 ---
 
@@ -84,16 +85,18 @@ Traditional efficiency ratings suffer from misleading composite scores and regio
 ## 📊 **Sample Results**
 
 ### **Database Coverage**
-- **400+ appliances** across 4 major categories
-- **Realistic score distribution**: 10-95% range (not artificial 0-100 sequence)
+- **5,807 real ENERGY STAR certified appliances** across 4 major categories
+- **Authentic government data**: Official ENERGY STAR certification database
+- **Real manufacturers**: GE Profile, Samsung, LG, Whirlpool, Frigidaire, Bosch, American, A.O. Smith, Rheem
+- **Actual model numbers**: Like PFQ83HSSW*** (not synthetic Model-C0084 placeholders)
 - **Regional calculations**: All 50 US states with real electricity pricing and grid data
-- **Honest ratings**: A+ reserved for truly exceptional efficiency (top 10% of products)
+- **Gas appliances**: Water heaters with proper gas energy conversion and pricing
 
-### **Top Performers by True Efficiency**
-- **Refrigerators**: Samsung Model-R0029 (93rd percentile efficiency)
-- **Dishwashers**: Frigidaire Model-D0075 (87th percentile efficiency)  
-- **Clothes Washers**: Frigidaire Model-C0075 (95th percentile efficiency)
-- **Water Heaters**: High-efficiency models with 0.90+ UEF ratings
+### **Data Sources (100% Real Government Data)**
+- **Refrigerators**: 4,323 certified models from ENERGY STAR dataset p5st-her9
+- **Dishwashers**: 645 certified models from ENERGY STAR dataset q8py-6w3f  
+- **Clothes Washers**: 335 certified models from ENERGY STAR dataset bghd-e2wd
+- **Water Heaters**: 504 certified models from ENERGY STAR dataset 6sbi-yuk2 (gas and electric)
 
 ---
 
@@ -111,7 +114,12 @@ Our system calculates separate regional impact using real data:
 - Texas: 0.95 lbs CO₂/kWh (fossil fuel heavy)
 - US Average: 0.85 lbs CO₂/kWh
 
-**Same Appliance, Different Impact**: A high-efficiency refrigerator costs $39/year in Texas vs $73/year in California, but produces 288 vs 136 lbs CO₂ respectively.
+**Gas Pricing** (EIA data):
+- Natural Gas US Average: $1.28/therm
+- California: $1.85/therm (expensive)
+- Texas: $1.05/therm (cheap)
+
+**Same Appliance, Different Impact**: A high-efficiency refrigerator costs $39/year in Texas vs $73/year in California, but produces 288 vs 136 lbs CO₂ respectively. Gas water heaters show similar regional variations in cost and emissions.
 
 ---
 
@@ -119,37 +127,36 @@ Our system calculates separate regional impact using real data:
 
 ### **REST API Endpoints**
 ```bash
-# Search appliances with filters
-GET /search?category=refrigerators&manufacturer=Samsung&min_score=80&limit=10
+# Search real ENERGY STAR appliances with filters
+GET /api/search?category=refrigerators&manufacturer=Samsung&min_score=80&limit=10
 
-# Get top performers by category  
-GET /top-performers/refrigerators?limit=5
+# Get real appliance data by category  
+GET /api/search?category=clothes_washers&limit=5
 
-# Compare multiple models
-GET /compare?model=Model-R0029&model=Model-R0051
-
-# Get comprehensive stats
-GET /stats
-
-# Regional cost and carbon impact
-GET /regional-impact/Model-R0029
+# Database statistics (real data counts)
+GET /api/stats
 ```
 
 ### **Response Format**
 ```json
 {
+  "category": "clothes_washers",
+  "total_results": 5,
+  "filters": {
+    "manufacturer": null,
+    "min_score": 0
+  },
   "appliances": [{
-    "manufacturer": "Samsung",
-    "model_number": "Model-R0029",
-    "open_efficiency_score": 93.0,
-    "efficiency_rating": "A+", 
-    "annual_energy_kwh": 303.0,
-    "annual_cost_us_average": 50.0,
-    "annual_co2_lbs_us_average": 257.6,
-    "regional_impact": {
-      "California": {"annual_cost": 73.0, "annual_co2_lbs": 136.4},
-      "Texas": {"annual_cost": 38.8, "annual_co2_lbs": 287.9}
-    }
+    "manufacturer": "GE Profile",
+    "model_number": "PFQ83HSSW***",
+    "open_efficiency_score": 87,
+    "efficiency_rating": "A", 
+    "annual_energy_kwh": 152,
+    "annual_cost_us_average": 25.08,
+    "annual_co2_lbs_us_average": 129.2,
+    "integrated_modified_energy_factor": 2.65,
+    "energy_star_certified": true,
+    "data_source": "ENERGY_STAR_OFFICIAL"
   }]
 }
 ```
@@ -160,16 +167,22 @@ GET /regional-impact/Model-R0029
 
 ```
 open-efficiency-index/
-├── 📊 api/                 # REST API server
-│   ├── efficiency_api.py   # Main Flask application
-│   └── *.py               # Modular API components
-├── 🌐 web/                # Consumer interfaces
+├── 📊 api/                 # Node.js serverless API
+│   ├── index.js            # Main Vercel serverless function
+│   └── data/              # Real ENERGY STAR data (5,807 appliances)
+│       ├── refrigerators.json      # 4,323 real certified refrigerators
+│       ├── dishwashers.json        # 645 real certified dishwashers  
+│       ├── clothes_washers.json    # 335 real certified clothes washers
+│       ├── water_heaters.json      # 504 real certified water heaters
+│       └── stats.json             # Real database statistics
+├── 🌐 web/                # Consumer web interface
 │   ├── index.html         # Database search & comparison
 │   └── regional-efficiency-map.html  # Interactive state map
-├── 📈 data/               # SQLite database
-│   └── open_efficiency_index.db     # 400+ appliances with scores
-├── 🔧 scripts/            # Data processing pipeline
-│   └── data_pipeline.py   # Generate efficiency scores from raw data
+├── 📈 data/               # Legacy SQLite database (development)
+│   └── open_efficiency_index.db     
+├── 🔧 scripts/            # Data processing pipelines
+│   ├── real_data_pipeline.py       # REAL ENERGY STAR API integration  
+│   └── data_pipeline.py           # Legacy synthetic data generator
 ├── 📖 documentation/      # Comprehensive guides
 └── 🧪 tests/             # Testing and validation
 ```
@@ -187,8 +200,8 @@ This project was developed as part of the Clean Energy Leadership Institute (CEL
 - **Open Standards**: Promotes transparency in efficiency rating methodologies
 - **Consumer Empowerment**: Provides actionable information for informed appliance purchases
 
-### **"Vibe Coding for Good" Methodology**
-Complete production-ready system delivered through focused development sessions, showing how technologists can quickly build policy alternatives that serve the public interest.
+### **"Real Data for Good" Methodology**
+Complete production-ready system using **authentic government certification data**, demonstrating how technologists can build transparent policy alternatives that serve the public interest with verified, trustworthy information.
 
 ---
 
@@ -211,11 +224,11 @@ pip install -r requirements.txt
 # Copy environment template
 cp .env.example .env
 
-# Generate data (optional - database included)
-python scripts/data_pipeline.py
+# Generate real ENERGY STAR data (replaces any existing data)
+python scripts/real_data_pipeline.py
 
-# Start API server
-python api/efficiency_api.py
+# Start API server (Node.js for production compatibility)
+cd api && node index.js
 
 # Run tests
 python scripts/test_system_validation.py
@@ -223,12 +236,15 @@ python scripts/test_system_validation.py
 
 ### **Environment Variables**
 ```bash
-# .env file configuration
-FLASK_ENV=production
-DATABASE_PATH=data/open_efficiency_index.db
+# .env file configuration (for local development)
+NODE_ENV=production
 API_HOST=0.0.0.0
-API_PORT=8080
+API_PORT=3000
 ENABLE_CORS=true
+
+# For Python data pipeline
+DATABASE_PATH=data/open_efficiency_index.db
+ENERGYSTAR_API_BASE=https://data.energystar.gov/api/views
 ```
 
 ---
@@ -240,20 +256,23 @@ ENABLE_CORS=true
 # Run comprehensive system validation
 python scripts/test_system_validation.py
 
-# Expected output: 4/4 tests passed
-# ✅ Database integrity (400+ appliances)
-# ✅ API endpoints (6 endpoints working)
-# ✅ Key research findings (ice maker analysis, regional variations)
-# ✅ Web interface accessibility
+# Expected output: Real data validation
+# ✅ Database integrity (5,807 real appliances from ENERGY STAR)
+# ✅ API endpoints (Node.js serverless functions working)
+# ✅ Real manufacturer validation (GE Profile, Samsung, LG confirmed)
+# ✅ Web interface accessibility with authentic data
 ```
 
 ### **API Testing**
 ```bash
-# Test all endpoints
-curl http://localhost:8080/stats
-curl "http://localhost:8080/search?category=refrigerators&limit=5"
-curl "http://localhost:8080/top-performers/refrigerators?limit=3"
-curl "http://localhost:8080/compare?model=Model-R0029&model=Model-R0051"
+# Test main endpoints with real data
+curl https://open-efficiency-index-deploy.vercel.app/api/stats
+curl "https://open-efficiency-index-deploy.vercel.app/api/search?category=refrigerators&limit=5"
+curl "https://open-efficiency-index-deploy.vercel.app/api/search?category=clothes_washers&manufacturer=GE&limit=3"
+
+# Local testing (if running locally)
+curl http://localhost:3000/api/stats
+curl "http://localhost:3000/api/search?category=clothes_washers&limit=5"
 ```
 
 ---
@@ -268,12 +287,12 @@ curl "http://localhost:8080/compare?model=Model-R0029&model=Model-R0051"
 
 ### **Traditional Hosting**
 ```bash
-# With Gunicorn
-pip install gunicorn
-gunicorn -w 4 -b 0.0.0.0:8080 api.efficiency_api:app
+# With Node.js (matches production environment)
+npm install
+npm start
 
-# With Apache/Nginx
-# Configure reverse proxy to http://localhost:8080
+# With Nginx/Apache reverse proxy  
+# Configure proxy to http://localhost:3000
 ```
 
 ### **Docker (Coming Soon)**
@@ -293,11 +312,11 @@ CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:8080", "api.efficiency_api:app"]
 We welcome contributions! Areas needing help:
 
 ### **Priority Areas:**
-- 🐛 **Data Quality**: Validate efficiency calculations against manufacturer specs
-- 🌐 **Regional Expansion**: Add more states, Canadian provinces, or international markets  
-- 📊 **New Categories**: Expand beyond refrigerators/dishwashers/washers/water heaters
-- 🔍 **Search Enhancement**: Better filtering, sorting, and recommendation algorithms
-- 🎨 **UI/UX**: Improve web interface design and mobile experience
+- 🐛 **Data Quality**: Validate real ENERGY STAR efficiency calculations against additional government sources
+- 🌐 **Regional Expansion**: Add Canadian provinces, EU energy labels, or international efficiency standards  
+- 📊 **New Categories**: Add heat pumps, smart thermostats, or other ENERGY STAR certified appliances
+- 🔍 **Search Enhancement**: Better filtering by real manufacturer specs, IMEF ranges, UEF ratings
+- 🎨 **UI/UX**: Improve web interface to highlight authentic government certification badges
 
 ### **Development Process:**
 1. Fork the repository
@@ -312,7 +331,7 @@ We welcome contributions! Areas needing help:
 
 **MIT License** - Free for academic, commercial, and government use.
 
-**Open Data Commitment**: All efficiency calculations, regional data, and methodologies are transparent and reproducible. We believe energy efficiency information should be accessible to everyone.
+**Open Data Commitment**: All efficiency calculations, regional data, and methodologies are transparent and reproducible. We believe energy efficiency information should be accessible to everyone, backed by authentic government certification data.
 
 ---
 
