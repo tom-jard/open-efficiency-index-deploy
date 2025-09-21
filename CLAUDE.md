@@ -1,7 +1,9 @@
-# Open Efficiency Index - Local Context
+# Protecting ENERGY STAR - Open Efficiency Index
 
 ## Project Overview
-A production-ready appliance efficiency rating system that provides transparent, regionally-aware alternatives to ENERGY STAR ratings using **real government certification data**.
+**"Protecting ENERGY STAR - An open-source safeguard for efficiency standards"**
+
+A production-ready appliance database that protects and preserves ENERGY STAR's 30-year legacy using **real government certification data**. Positioned as a guardian and community-driven backup for efficiency standards, not a competitor.
 
 ## Major Achievement: Real Data Integration ✅
 **December 2024**: Successfully migrated from synthetic data to **5,807 real ENERGY STAR certified appliances** from official government APIs.
@@ -170,9 +172,15 @@ User Request → Vercel → api/index.js → api/data/*.json → Real ENERGY STA
 - **Local development**: No special setup required
 
 ## Last Updated
+- **2025-09-21**: Rebranding to "Protecting ENERGY STAR" messaging
+  - Changed from "Beyond ENERGY STAR" to "Protecting ENERGY STAR" - positioned as guardian not competitor
+  - Updated hero messaging: "An open-source safeguard for efficiency standards"
+  - Replaced fabricated stats with factual data: 5,807 certified appliances, 4,323 refrigerators, 645 dishwashers, 4 categories
+  - Removed fake CO2 savings and efficiency improvement percentages
+  - Updated both landing page and database page with consistent messaging
 - **2025-09-16**: Critical water heater data processing fix
   - Fixed column mapping issue (CSV vs JSON field names)
-  - Added proper gas energy conversion (therms → kWh equivalent) 
+  - Added proper gas energy conversion (therms → kWh equivalent)
   - Implemented real gas pricing and CO2 calculations
   - Water heaters now display accurate costs ($240/yr) and emissions (2,200 lbs CO2/yr)
   - Fixed web interface energy use column field mapping bug

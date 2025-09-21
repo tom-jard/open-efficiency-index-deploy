@@ -1,24 +1,24 @@
-# 🏡 Open Efficiency Index
+# 🛡️ Protecting ENERGY STAR
 
-**A transparent, regionally-aware alternative to ENERGY STAR appliance ratings**
+**An open-source safeguard for efficiency standards**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/tom-jard/open-efficiency-index-deploy)
 
-[🌐 **Live Demo**](https://open-efficiency-index.vercel.app) | [📊 **Search Database**](https://open-efficiency-index.vercel.app/web/) | [🗺️ **Regional Map**](https://open-efficiency-index.vercel.app/web/regional-efficiency-map.html)
+[🌐 **Live Demo**](https://open-efficiency-index-deploy.vercel.app) | [📊 **Search Database**](https://open-efficiency-index-deploy.vercel.app/web/) | [🗺️ **Regional Map**](https://open-efficiency-index-deploy.vercel.app/web/regional-efficiency-map.html)
 
 ---
 
-## ✨ **What Makes This Different**
+## ✨ **Protecting 30 Years of Efficiency Progress**
 
-Unlike ENERGY STAR's binary qualified/not-qualified ratings, the Open Efficiency Index provides:
+Unlike traditional efficiency databases that risk policy changes, Protecting ENERGY STAR provides:
 
-🎯 **Real Government Data** - Built on **5,807 authentic ENERGY STAR certified appliances** from official APIs  
-🏭 **Authentic Manufacturers** - Real brands like GE Profile, Samsung, LG, Whirlpool with actual model numbers  
-🗺️ **Regional Awareness** - Shows how location affects your costs and environmental impact  
-📊 **Transparent Methodology** - All algorithms and data sources are open source  
-🔍 **True Performance Metrics** - Based on actual government test procedures and specifications  
+🛡️ **Legacy Preservation** - Community-driven protection for ENERGY STAR's 30-year foundation
+🏭 **Authentic Data** - Built on **5,807 real ENERGY STAR certified appliances** from government APIs
+🗺️ **Enhanced Regional Awareness** - Adding location-specific cost and emissions to ENERGY STAR data
+📊 **Open-Source Guarantee** - Ensuring efficiency standards remain publicly available forever
+🔍 **True Government Standards** - Based on actual ENERGY STAR test procedures and certifications  
 
 ### **Example: Real GE Profile Clothes Washer (PFQ83HSSW***)**
 - **Efficiency Score**: Based on real IMEF (Integrated Modified Energy Factor) from ENERGY STAR testing
@@ -194,14 +194,15 @@ open-efficiency-index/
 ### **CELI Fellowship Capstone Project**
 This project was developed as part of the Clean Energy Leadership Institute (CELI) fellowship program, demonstrating rapid policy technology prototyping.
 
-### **Policy Innovation**
-- **Alternative Framework**: Viable replacement for potentially defunded ENERGY STAR program
+### **Policy Innovation: Safeguarding Efficiency Standards**
+- **Legacy Protection**: Community backup for potentially threatened ENERGY STAR program
+- **Democratic Access**: Ensuring efficiency data remains publicly accessible
 - **Regional Equity**: Addresses geographic disparities in energy costs and emissions
 - **Open Standards**: Promotes transparency in efficiency rating methodologies
 - **Consumer Empowerment**: Provides actionable information for informed appliance purchases
 
-### **"Real Data for Good" Methodology**
-Complete production-ready system using **authentic government certification data**, demonstrating how technologists can build transparent policy alternatives that serve the public interest with verified, trustworthy information.
+### **"Protecting Standards" Methodology**
+Community-driven system using **authentic ENERGY STAR certification data**, demonstrating how open-source technology can safeguard public efficiency standards with verified, trustworthy government information - ensuring 30 years of progress remains protected.
 
 ---
 
@@ -348,7 +349,7 @@ We welcome contributions! Areas needing help:
 
 If this project helps you make more informed appliance decisions or advances energy efficiency transparency, please consider giving it a star! ⭐
 
-**Making energy efficiency transparent, one appliance at a time.** 🏡✨
+**Protecting energy efficiency standards, one appliance at a time.** 🛡️✨
 
 ---
 
